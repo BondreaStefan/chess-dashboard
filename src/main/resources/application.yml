@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: chess-dashboard
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/chess_dashboard
+    username: chess
+    password: ${DB_PASSWORD:chess_local_dev}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          '[time_zone]': UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: 8080
+
+logging:
+  level:
+    '[org.flywaydb]': INFO

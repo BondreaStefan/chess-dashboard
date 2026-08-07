@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: chess-dashboard-db
+    environment:
+      POSTGRES_DB: chess_dashboard
+      POSTGRES_USER: chess
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-chess_local_dev}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chess -d chess_dashboard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
