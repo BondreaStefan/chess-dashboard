@@ -14,7 +14,7 @@ import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "coach")
-public class Coach {
+class Coach {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +38,7 @@ public class Coach {
     private OffsetDateTime updatedAt;
 
 
-    public Coach() {
+    protected Coach() {
 
     }
 
@@ -103,17 +103,19 @@ public class Coach {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) 
+            return true;
+        if (!(o instanceof Coach)) 
+            return false;
 
         Coach coach = (Coach) o;
 
-        return id != null ? id.equals(coach.id) : coach.id == null;
+        return id != null && id.equals(coach.getId());
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return getClass().hashCode();
     }
 
 }
