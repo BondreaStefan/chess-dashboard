@@ -3,9 +3,9 @@ spring:
     name: chess-dashboard
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/chess_dashboard
+    url: jdbc:postgresql://127.0.0.1:5433/chess_dashboard
     username: chess
-    password: ${DB_PASSWORD:chess_local_dev}
+    password: chess_local_dev
 
   jpa:
     hibernate:

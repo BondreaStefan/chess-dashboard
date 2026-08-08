@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: chess_dashboard
       POSTGRES_USER: chess
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-chess_local_dev}
+      POSTGRES_PASSWORD: chess_local_dev
     ports:
       - "5433:5432"
     volumes:
