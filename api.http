@@ -1,0 +1,15 @@
+### Create a coach
+POST http://localhost:8080/api/v1/coaches
+Content-Type: application/json
+
+{
+  "firstName": "Vasile",
+  "lastName": "Popescu",
+  "email": "vasile.popescu@example.com"
+}
+
+### List all coaches
+GET http://localhost:8080/api/v1/coaches
+
+### Get coach by id
+GET http://localhost:8080/api/v1/coaches/1
