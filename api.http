@@ -8,8 +8,18 @@ Content-Type: application/json
   "email": "vasile.popescu@example.com"
 }
 
+### Create a coach with invalid data
+POST http://localhost:8080/api/v1/coaches
+Content-Type: application/json
+
+{
+  "firstName": "",
+  "lastName": "Popescu",
+  "email": "nu-este-email"
+}
+
 ### List all coaches
 GET http://localhost:8080/api/v1/coaches
 
 ### Get coach by id
-GET http://localhost:8080/api/v1/coaches/1
+GET http://localhost:8080/api/v1/coaches/5

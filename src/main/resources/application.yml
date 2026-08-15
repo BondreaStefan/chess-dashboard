@@ -2,6 +2,10 @@ spring:
   application:
     name: chess-dashboard
 
+  mvc:
+    problemdetails:
+      enabled: true
+
   datasource:
     url: jdbc:postgresql://127.0.0.1:5433/chess_dashboard
     username: chess
