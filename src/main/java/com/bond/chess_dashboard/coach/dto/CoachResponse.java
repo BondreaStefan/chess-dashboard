@@ -7,5 +7,6 @@ public record CoachResponse(
     String firstName,
     String lastName,
     String email,
-    OffsetDateTime createdAt
+    OffsetDateTime createdAt,
+    OffsetDateTime updatedAt
 ) {}

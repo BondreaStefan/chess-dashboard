@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import com.bond.chess_dashboard.coach.dto.UpdateCoachRequest;
 import jakarta.validation.Valid;
 import com.bond.chess_dashboard.coach.dto.CreateCoachRequest;
 import com.bond.chess_dashboard.coach.dto.CoachResponse;
@@ -43,4 +46,15 @@ public class CoachController {
         return new ResponseEntity<>(coachResponse, HttpStatus.OK);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCoach(@PathVariable Long id){
+        coachService.deleteCoach(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CoachResponse> updateCoach(@PathVariable Long id, @Valid @RequestBody UpdateCoachRequest request){
+        CoachResponse coachResponse = coachService.updateCoach(id, request);
+        return new ResponseEntity<>(coachResponse, HttpStatus.OK);
+    }
 }

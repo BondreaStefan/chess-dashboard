@@ -18,8 +18,36 @@ Content-Type: application/json
   "email": "nu-este-email"
 }
 
+### PUT — schimbă numele
+PUT http://localhost:8080/api/v1/coaches/1
+Content-Type: application/json
+
+{
+  "firstName": "Ioan",
+  "lastName": "Popescu"
+}
+
+### PUT — firstName gol (așteptat 400)
+PUT http://localhost:8080/api/v1/coaches/1
+Content-Type: application/json
+
+{
+  "firstName": "",
+  "lastName": "Popescu"
+}
+
+### PUT — id inexistent (așteptat 404)
+PUT http://localhost:8080/api/v1/coaches/999
+Content-Type: application/json
+
+{
+  "firstName": "Ioan",
+  "lastName": "Popescu"
+}
+
+
 ### List all coaches
 GET http://localhost:8080/api/v1/coaches
 
 ### Get coach by id
-GET http://localhost:8080/api/v1/coaches/5
+GET http://localhost:8080/api/v1/coaches/1

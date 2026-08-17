@@ -23,7 +23,8 @@ class CoachMapper {
             coach.getFirstName(),
             coach.getLastName(),
             coach.getEmail(),
-            coach.getCreatedAt()
+            coach.getCreatedAt(),
+            coach.getUpdatedAt()
         );
     }
 

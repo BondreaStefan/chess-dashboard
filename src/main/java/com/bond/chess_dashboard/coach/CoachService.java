@@ -2,6 +2,7 @@ package com.bond.chess_dashboard.coach;
 
 import org.springframework.stereotype.Service;
 import com.bond.chess_dashboard.coach.dto.CreateCoachRequest;
+import com.bond.chess_dashboard.coach.dto.UpdateCoachRequest;
 import org.springframework.transaction.annotation.Transactional;
 import com.bond.chess_dashboard.coach.dto.CoachResponse;
 import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
@@ -43,6 +44,20 @@ public class CoachService {
         return coaches.stream()
                 .map(CoachMapper::toResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void deleteCoach(Long id) {
+        Coach coach = findCoachById(id);
+        coachRepository.delete(coach);
+    }
+
+    @Transactional
+    public CoachResponse updateCoach(Long id, UpdateCoachRequest request) {
+        Coach coach = findCoachById(id);
+        coach.setFirstName(request.firstName());
+        coach.setLastName(request.lastName());
+        return CoachMapper.toResponse(coach);
     }
 
 }
