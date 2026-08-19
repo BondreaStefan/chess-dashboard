@@ -6,16 +6,16 @@ import jakarta.validation.constraints.Size;
 
 
 public record CreateCoachRequest(
-    @NotBlank(message = "{coach.firstName.required}")
-    @Size(max = 100, message = "{coach.name.tooLong}")
+    @NotBlank(message = "{firstName.required}")
+    @Size(max = 100, message = "{name.tooLong}")
     String firstName,
 
-    @NotBlank(message = "{coach.lastName.required}")
-    @Size(max = 100, message = "{coach.name.tooLong}")
+    @NotBlank(message = "{lastName.required}")
+    @Size(max = 100, message = "{name.tooLong}")
     String lastName,
 
-    @NotBlank(message = "{coach.email.required}")
-    @Size(max = 255, message = "{coach.email.tooLong}")
-    @Email(message = "{coach.email.invalid}")
+    @NotBlank(message = "{email.required}")
+    @Size(max = 255, message = "{email.tooLong}")
+    @Email(message = "{email.invalid}")
     String email
 ) {}
