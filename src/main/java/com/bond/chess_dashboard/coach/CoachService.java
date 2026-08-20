@@ -33,6 +33,10 @@ public class CoachService {
                 .orElseThrow(() -> new ResourceNotFoundException("Coach", id));
     }
 
+    public boolean coachExists(Long id) {
+        return coachRepository.existsById(id);
+    }
+
     @Transactional(readOnly = true)
     public CoachResponse getCoachById(Long id) {
         return CoachMapper.toResponse(findCoachById(id));
