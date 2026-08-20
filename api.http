@@ -51,3 +51,122 @@ GET http://localhost:8080/api/v1/coaches
 
 ### Get coach by id
 GET http://localhost:8080/api/v1/coaches/1
+
+### Delete coach
+DELETE http://localhost:8080/api/v1/coaches/1
+
+### Create student (with coach)
+POST http://localhost:8080/api/v1/students
+Content-Type: application/json
+
+{
+  "firstName": "Andrei",
+  "lastName": "Ionescu",
+  "email": "andrei.ionescu@example.com",
+  "coachId": 1,
+  "lichessUsername": "andrei_chess"
+}
+
+### Create student (unassigned, no online accounts)
+POST http://localhost:8080/api/v1/students
+Content-Type: application/json
+
+{
+  "firstName": "Maria",
+  "lastName": "Georgescu",
+  "email": "maria.georgescu@example.com"
+}
+
+### Create student — duplicate email (expect 409)
+POST http://localhost:8080/api/v1/students
+Content-Type: application/json
+
+{
+  "firstName": "Alt",
+  "lastName": "Nume",
+  "email": "andrei.ionescu@example.com"
+}
+
+### Create student — duplicate lichess username (expect 409)
+POST http://localhost:8080/api/v1/students
+Content-Type: application/json
+
+{
+  "firstName": "Alt",
+  "lastName": "Nume",
+  "email": "unic@example.com",
+  "lichessUsername": "andrei_chess"
+}
+
+### Create student — non-existent coach (expect 404)
+POST http://localhost:8080/api/v1/students
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Test",
+  "email": "test@example.com",
+  "coachId": 999
+}
+
+### Create student — invalid email (expect 400 with errors.email)
+POST http://localhost:8080/api/v1/students
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Test",
+  "email": "nu-este-email"
+}
+
+### List all students
+GET http://localhost:8080/api/v1/students
+
+### List students by coach
+GET http://localhost:8080/api/v1/students?coachId=1
+
+### List students by non-existent coach (expect 404)
+GET http://localhost:8080/api/v1/students?coachId=999
+
+### Get student by id
+GET http://localhost:8080/api/v1/students/1
+
+### Get student — not found (expect 404)
+GET http://localhost:8080/api/v1/students/999
+
+### Update student — same lichess username (expect 200, not 409)
+PUT http://localhost:8080/api/v1/students/1
+Content-Type: application/json
+
+{
+  "firstName": "Andrei-Mihai",
+  "lastName": "Ionescu",
+  "lichessUsername": "andrei_chess"
+}
+
+### Assign coach
+PUT http://localhost:8080/api/v1/students/1/coach
+Content-Type: application/json
+
+{
+  "coachId": 2
+}
+
+### Unassign coach
+PUT http://localhost:8080/api/v1/students/1/coach
+Content-Type: application/json
+
+{
+  "coachId": null
+}
+
+### Assign non-existent coach (expect 404)
+PUT http://localhost:8080/api/v1/students/2/coach
+Content-Type: application/json
+
+{
+  "coachId": 999
+}
+
+### Delete student
+DELETE http://localhost:8080/api/v1/students/2
