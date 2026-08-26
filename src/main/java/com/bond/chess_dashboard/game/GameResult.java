@@ -1,6 +1,6 @@
 package com.bond.chess_dashboard.game;
 
-public enum GameResult {
+enum GameResult {
     WIN,
     LOSS,
     DRAW,
