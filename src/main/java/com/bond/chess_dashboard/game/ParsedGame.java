@@ -8,9 +8,8 @@ public record ParsedGame(
     String blackName,
     Integer whiteElo,
     Integer blackElo,
-    OffsetDateTime playedAt
-    /*String ecoCode,
+    OffsetDateTime playedAt,
+    String ecoCode,
     String timeControl,
-    String site,
-    int moveCount*/
+    int moveCount
 ) {}

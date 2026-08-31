@@ -3,6 +3,7 @@ package com.bond.chess_dashboard.game;
 import com.github.bhlangonijr.chesslib.pgn.PgnIterator;
 import com.bond.chess_dashboard.common.exception.InvalidPgnException;
 import com.github.bhlangonijr.chesslib.game.Game;
+import com.github.bhlangonijr.chesslib.game.TimeControl;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -51,33 +52,51 @@ class PgnParser{
         
         OffsetDateTime playedAt = parsePlayedAt(game);
 
+        String ecoCode = game.getEco();
 
-        return new ParsedGame(result, whiteName, blackName, whiteElo, blackElo, playedAt);
+        String timeControl = extractTimeControl(game);
+
+        int moveCount = moveCount(game);
+
+        return new ParsedGame(result, whiteName, blackName, whiteElo, blackElo, playedAt, ecoCode, timeControl, moveCount);
     }
 
     private static OffsetDateTime parsePlayedAt(Game game) {
-    LocalDate date;
-    try {
-        date = LocalDate.parse(game.getRound().getEvent().getStartDate(), PGN_DATE);
-    } catch (Exception e) {
-        return null;
-    }
+        LocalDate date;
+        try {
+            date = LocalDate.parse(game.getRound().getEvent().getStartDate(), PGN_DATE);
+        } catch (Exception e) {
+            return null;
+        }
 
-    LocalTime time = LocalTime.MIDNIGHT;
-    Map<String, String> props = game.getProperty();
-    if (props != null) {
-        // Lichess: UTCTime; chess.com: EndTime ("16:37:47 GMT+0000")
-        String raw = props.getOrDefault("UTCTime", props.get("EndTime"));
-        if (raw != null) {
-            try {
-                time = LocalTime.parse(raw.split(" ")[0], PGN_TIME);
-            } catch (Exception e) {
-                // rămâne miezul nopții
+        LocalTime time = LocalTime.MIDNIGHT;
+        Map<String, String> props = game.getProperty();
+        if (props != null) {
+            // Lichess: UTCTime; chess.com: EndTime ("16:37:47 GMT+0000")
+            String raw = props.getOrDefault("UTCTime", props.get("EndTime"));
+            if (raw != null) {
+                try {
+                    time = LocalTime.parse(raw.split(" ")[0], PGN_TIME);
+                } catch (Exception e) {
+                    // rămâne miezul nopții
+                }
             }
         }
+        return date.atTime(time).atOffset(ZoneOffset.UTC);
     }
 
-    return date.atTime(time).atOffset(ZoneOffset.UTC);
-}
+    private static String extractTimeControl(Game game) {
+        TimeControl tc = game.getRound().getEvent().getTimeControl();
+        if (tc == null) 
+            return null;
+
+        String value = tc.toPGNString();
+        // chesslib doesn't add the increment when it's 0 : "300" when it should be "300+0"
+        return value.contains("+") ? value : value + "+0";
+    }
+
+    private static int moveCount(Game game) {
+        return (game.getHalfMoves().size() + 1) / 2;
+    } 
     
 }

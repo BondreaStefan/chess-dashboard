@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 class PgnParserTest {
 
-    private static final String SAMPLE_PGN = """
+    private static final String SAMPLE_CHESS_COM_PGN = """
             [Event "Live Chess"]
             [Site "Chess.com"]
             [Date "2026.08.30"]
@@ -31,11 +31,38 @@ class PgnParserTest {
             Qc8# 1-0
             """;
 
-    @Test
-    void parsesBasicMetadata() {
-        ParsedGame parsed = PgnParser.parse(SAMPLE_PGN);
+    private static final String SAMPLE_LICHESS_PGN = """
+            [Event "rated blitz game"]
+            [Site "https://lichess.org/z5wCkUFp"]
+            [Date "2026.08.31"]
+            [Round "-"]
+            [White "VipStef"]
+            [Black "MsAs"]
+            [Result "1-0"]
+            [GameId "z5wCkUFp"]
+            [UTCDate "2026.08.31"]
+            [UTCTime "11:37:23"]
+            [WhiteElo "1267"]
+            [BlackElo "1269"]
+            [WhiteRatingDiff "+74"]
+            [BlackRatingDiff "-5"]
+            [Variant "Standard"]
+            [TimeControl "300+0"]
+            [ECO "C64"]
+            [Opening "Ruy Lopez: Classical Variation, Central Variation"]
+            [Termination "Time forfeit"]
+            [Annotator "lichess.org"]
 
-        System.out.println(parsed);
+            1. e4 e5 2. Nf3 Nc6 3. Bb5 Bc5 4. c3 { C64 Ruy Lopez: Classical Variation, Central Variation } 
+            Qf6 5. O-O Nge7 6. Re1 O-O 7. d4 d6 8. dxc5 Bg4 9. Bg5 Qg6 10. Bxe7 Nxe7 11. cxd6 cxd6 
+            12. Nbd2 a6 13. Be2 f5 14. h3 Bxh3 15. exf5 Nxf5 16. g3 Ne3 17. Nh4 Qg5 18. Ndf3 Rxf3 
+            19. Nxf3 Qg6 20. Qb3+ Kh8 21. Qxb7 Rf8 22. Nh4 Qg5 23. Qh1 Rxf2 24. Kxf2 Nf5 25. Qxh3 Qe3+ 
+            26. Kg2 { White wins on time. } 1-0
+
+            """;
+    @Test
+    void parsesChessComMetadata() {
+        ParsedGame parsed = PgnParser.parse(SAMPLE_CHESS_COM_PGN);
 
         assertThat(parsed.result()).isEqualTo("1-0");
         assertThat(parsed.whiteName()).isEqualTo("S-Bondrea");
@@ -43,6 +70,24 @@ class PgnParserTest {
         assertThat(parsed.whiteElo()).isEqualTo(1430);
         assertThat(parsed.blackElo()).isEqualTo(1400);
         assertThat(parsed.playedAt()).isEqualTo(OffsetDateTime.parse("2026-08-30T16:37:47Z"));
+        assertThat(parsed.ecoCode()).isEqualTo("B21");
+        assertThat(parsed.timeControl()).isEqualTo("900+10");
+        assertThat(parsed.moveCount()).isEqualTo(27);
+    }
+
+    @Test
+    void parsesLichessMetadata() {
+        ParsedGame parsed = PgnParser.parse(SAMPLE_LICHESS_PGN);
+
+        assertThat(parsed.result()).isEqualTo("1-0");
+        assertThat(parsed.whiteName()).isEqualTo("VipStef");
+        assertThat(parsed.blackName()).isEqualTo("MsAs");
+        assertThat(parsed.whiteElo()).isEqualTo(1267);
+        assertThat(parsed.blackElo()).isEqualTo(1269);
+        assertThat(parsed.playedAt()).isEqualTo(OffsetDateTime.parse("2026-08-31T11:37:23Z"));
+        assertThat(parsed.ecoCode()).isEqualTo("C64");
+        assertThat(parsed.timeControl()).isEqualTo("300+0");
+        assertThat(parsed.moveCount()).isEqualTo(26);
     }
 
     @Test
@@ -54,7 +99,7 @@ class PgnParserTest {
                 """;
 
         ParsedGame parsed = PgnParser.parse(minimal);
-        System.out.println(parsed);
+
         assertThat(parsed.whiteName()).isNull();
         assertThat(parsed.whiteElo()).isNull(); 
         assertThat(parsed.playedAt()).isNull();
