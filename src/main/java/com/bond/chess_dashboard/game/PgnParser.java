@@ -19,12 +19,14 @@ class PgnParser{
     private static final DateTimeFormatter PGN_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     static ParsedGame parse(String pgn){
-        PgnIterator pgnIterator = new PgnIterator(pgn.lines().toList());
         List<Game> games = new ArrayList<>();
-        for(Game game : pgnIterator) {
-            games.add(game);
+        try (PgnIterator pgnIterator = new PgnIterator(pgn.lines().toList())) {
+            for (Game game : pgnIterator) {
+                games.add(game);
+            }
+        } catch (Exception e) {
+            throw new InvalidPgnException("Failed to parse PGN", e);
         }
-
         if(games.isEmpty()) {
             throw new InvalidPgnException("No game found in PGN");
         }
