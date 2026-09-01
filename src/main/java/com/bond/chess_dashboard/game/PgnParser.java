@@ -78,7 +78,7 @@ class PgnParser{
                 try {
                     time = LocalTime.parse(raw.split(" ")[0], PGN_TIME);
                 } catch (Exception e) {
-                    // rămâne miezul nopții
+                    // midnight is fine if we can't parse the time
                 }
             }
         }
