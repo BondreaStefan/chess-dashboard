@@ -1,6 +1,6 @@
 package com.bond.chess_dashboard.game;
 
-enum Color {
+public enum Color {
     WHITE,
     BLACK
 }

@@ -1,6 +1,6 @@
 package com.bond.chess_dashboard.game;
 
-enum GameSource {
+public enum GameSource {
     LICHESS,
     CHESS_COM,
     MANUAL
