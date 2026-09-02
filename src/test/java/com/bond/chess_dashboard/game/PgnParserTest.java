@@ -1,10 +1,13 @@
 package com.bond.chess_dashboard.game;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.OffsetDateTime;
 
 import org.junit.jupiter.api.Test;
+
+import com.bond.chess_dashboard.common.exception.InvalidPgnException;
 
 class PgnParserTest {
 
@@ -119,4 +122,11 @@ class PgnParserTest {
 
         assertThat(parsed.playedAt()).isEqualTo(OffsetDateTime.parse("2026-03-14T00:00:00Z"));
     }
+
+    @Test
+    void rejectsTextWithoutMoves() {
+        assertThatThrownBy(() -> PgnParser.parse("acesta nu este un PGN"))
+                .isInstanceOf(InvalidPgnException.class)
+                .hasMessageContaining("doesn't contain any moves");
+}
 }
