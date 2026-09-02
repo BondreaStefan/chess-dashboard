@@ -60,11 +60,12 @@ POST http://localhost:8080/api/v1/students
 Content-Type: application/json
 
 {
-  "firstName": "Andrei",
-  "lastName": "Ionescu",
-  "email": "andrei.ionescu@example.com",
-  "coachId": 1,
-  "lichessUsername": "andrei_chess"
+  "firstName": "Stefan",
+  "lastName": "Bondrea",
+  "email": "stefan.bondrea@example.com",
+  "coachId": 2,
+  "lichessUsername": "VipStef",
+  "chessComUsername": "S-Bondrea"
 }
 
 ### Create student (unassigned, no online accounts)
@@ -123,7 +124,7 @@ Content-Type: application/json
 GET http://localhost:8080/api/v1/students
 
 ### List students by coach
-GET http://localhost:8080/api/v1/students?coachId=1
+GET http://localhost:8080/api/v1/students?coachId=2
 
 ### List students by non-existent coach (expect 404)
 GET http://localhost:8080/api/v1/students?coachId=999
@@ -170,3 +171,77 @@ Content-Type: application/json
 
 ### Delete student
 DELETE http://localhost:8080/api/v1/students/2
+
+### Create game — color deduced from chess.com username
+POST http://localhost:8080/api/v1/games
+Content-Type: application/json
+
+{
+  "studentId": 2,
+  "pgn": "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2026.08.30\"]\n[Round \"?\"]\n[White \"S-Bondrea\"]\n[Black \"Rookin-Good\"]\n[Result \"1-0\"]\n[TimeControl \"900+10\"]\n[WhiteElo \"1430\"]\n[BlackElo \"1400\"]\n[ECO \"B21\"]\n[EndTime \"16:37:47 GMT+0000\"]\n\n1. e4 c5 2. d4 cxd4 3. c3 e6 4. cxd4 d5 1-0"
+}
+
+### Create game — explicit color
+POST http://localhost:8080/api/v1/games
+Content-Type: application/json
+
+{
+  "studentId": 1,
+  "studentColor": "BLACK",
+  "pgn": "[Event \"Club Tournament\"]\n[Date \"2026.05.10\"]\n[White \"Ionescu, Andrei\"]\n[Black \"Popescu, Ion\"]\n[Result \"0-1\"]\n\n1. d4 Nf6 2. c4 e6 0-1"
+}
+
+### Create game — no color, no username match (expect 400)
+POST http://localhost:8080/api/v1/games
+Content-Type: application/json
+
+{
+  "studentId": 1,
+  "pgn": "[Event \"Club Tournament\"]\n[Date \"2026.05.10\"]\n[White \"Cineva\"]\n[Black \"Altcineva\"]\n[Result \"1-0\"]\n\n1. e4 e5 1-0"
+}
+
+### Create game — invalid PGN (expect 400)
+POST http://localhost:8080/api/v1/games
+Content-Type: application/json
+
+{
+  "studentId": 1,
+  "pgn": "acesta nu este un PGN"
+}
+
+### Create game — missing studentId (expect 400 with errors.studentId)
+POST http://localhost:8080/api/v1/games
+Content-Type: application/json
+
+{
+  "pgn": "[Result \"1-0\"]\n\n1. e4 e5 1-0",
+  "studentColor": "WHITE"
+}
+
+### Create game — non-existent student (expect 404)
+POST http://localhost:8080/api/v1/games
+Content-Type: application/json
+
+{
+  "studentId": 999,
+  "studentColor": "WHITE",
+  "pgn": "[Result \"1-0\"]\n\n1. e4 e5 1-0"
+}
+
+### Get game by id
+GET http://localhost:8080/api/v1/games/1
+
+### Get game — not found (expect 404)
+GET http://localhost:8080/api/v1/games/999
+
+### List games by student
+GET http://localhost:8080/api/v1/games?studentId=2
+
+### List games — explicit pagination and sort
+GET http://localhost:8080/api/v1/games?studentId=1&page=0&size=5&sort=whiteElo,desc
+
+### List games — non-existent student (expect 404)
+GET http://localhost:8080/api/v1/games?studentId=999
+
+### Delete game
+DELETE http://localhost:8080/api/v1/games/1
