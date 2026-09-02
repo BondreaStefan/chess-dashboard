@@ -36,6 +36,10 @@ class PgnParser{
         }
         Game game = games.getFirst();
 
+        if (game.getHalfMoves() == null || game.getHalfMoves().isEmpty()) {
+            throw new InvalidPgnException("PGN doesn't contain any moves");
+        }
+
         String result = game.getResult().getDescription();
 
         String whiteName = game.getWhitePlayer().getName();
