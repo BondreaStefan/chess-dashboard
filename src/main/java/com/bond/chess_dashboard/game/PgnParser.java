@@ -26,7 +26,11 @@ class PgnParser{
                 games.add(game);
             }
         } catch (Exception e) {
-            throw new InvalidPgnException("Failed to parse PGN", e);
+            Throwable root = e;
+            while (root.getCause() != null) {
+                root = root.getCause();
+            }
+            throw new InvalidPgnException("Failed to parse PGN: " + root.getMessage(), e);
         }
         if(games.isEmpty()) {
             throw new InvalidPgnException("No game found in PGN");

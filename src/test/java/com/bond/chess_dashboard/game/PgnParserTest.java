@@ -128,5 +128,17 @@ class PgnParserTest {
         assertThatThrownBy(() -> PgnParser.parse("acesta nu este un PGN"))
                 .isInstanceOf(InvalidPgnException.class)
                 .hasMessageContaining("doesn't contain any moves");
-}
+    }
+
+    @Test
+    void rejectsIllegalMoves() {
+        String pgn = """
+                [Result "1-0"]
+
+                1. e4 e5 2. Qh9 1-0
+                """;
+
+        assertThatThrownBy(() -> PgnParser.parse(pgn))
+            .isInstanceOf(InvalidPgnException.class);
+    }
 }
