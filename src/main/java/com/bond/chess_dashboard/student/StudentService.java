@@ -113,4 +113,8 @@ public class StudentService {
         return StudentMapper.toResponse(student);
     }
 
+    public boolean studentExists(Long id) {
+        return studentRepository.existsById(id);
+    }
+
 }
