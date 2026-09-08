@@ -9,7 +9,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.bond.chess_dashboard.common.exception.InvalidPgnException;
-import com.github.bhlangonijr.chesslib.pgn.PgnIterator;
 
 class PgnParserTest {
 
@@ -182,8 +181,8 @@ class PgnParserTest {
     }
 
     @Test
-        void rejectsMultipleGamesOnSingleParse() {
-            String pgn = """
+    void rejectsMultipleGamesOnSingleParse() {
+        String pgn = """
             [Event "Game one"]
             [Date "2026.01.10"]
             [White "PlayerA"]
@@ -208,8 +207,8 @@ class PgnParserTest {
 
             1. c4 c5 2. Nc3 1/2-1/2
             """;
-            assertThatThrownBy(() -> PgnParser.parse(pgn))
-                    .isInstanceOf(InvalidPgnException.class)
-                    .hasMessageContaining("batch");
-        }
+        assertThatThrownBy(() -> PgnParser.parse(pgn))
+                .isInstanceOf(InvalidPgnException.class)
+                .hasMessageContaining("batch");
+    }
 }
