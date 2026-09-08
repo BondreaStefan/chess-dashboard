@@ -4,10 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import com.bond.chess_dashboard.common.exception.InvalidPgnException;
+import com.github.bhlangonijr.chesslib.pgn.PgnIterator;
 
 class PgnParserTest {
 
@@ -138,7 +140,76 @@ class PgnParserTest {
                 1. e4 e5 2. Qh9 1-0
                 """;
 
-        assertThatThrownBy(() -> PgnParser.parse(pgn))
+        assertThatThrownBy(() -> PgnParser.parse(pgn) )
             .isInstanceOf(InvalidPgnException.class);
     }
+
+    @Test
+    void parsesMultipleGames() {
+        String pgn = """
+            [Event "Game one"]
+            [Date "2026.01.10"]
+            [White "PlayerA"]
+            [Black "PlayerB"]
+            [Result "1-0"]
+
+            1. e4 e5 2. Nf3 Nc6 1-0
+
+            [Event "Game two"]
+            [Date "2026.01.11"]
+            [White "PlayerC"]
+            [Black "PlayerD"]
+            [Result "0-1"]
+
+            1. d4 d5 0-1
+
+            [Event "Game three"]
+            [Date "2026.01.12"]
+            [White "PlayerE"]
+            [Black "PlayerF"]
+            [Result "1/2-1/2"]
+
+            1. c4 c5 2. Nc3 1/2-1/2
+            """;
+
+        List<ParsedGame> games = PgnParser.parseAll(pgn);
+
+        assertThat(games).hasSize(3);
+        assertThat(games).extracting(ParsedGame::result)
+                .containsExactly("1-0", "0-1", "1/2-1/2");
+        assertThat(games.get(1).whiteName()).isEqualTo("PlayerC");
+        assertThat(games.get(2).moveCount()).isEqualTo(2);
+    }
+
+    @Test
+        void rejectsMultipleGamesOnSingleParse() {
+            String pgn = """
+            [Event "Game one"]
+            [Date "2026.01.10"]
+            [White "PlayerA"]
+            [Black "PlayerB"]
+            [Result "1-0"]
+
+            1. e4 e5 2. Nf3 Nc6 1-0
+
+            [Event "Game two"]
+            [Date "2026.01.11"]
+            [White "PlayerC"]
+            [Black "PlayerD"]
+            [Result "0-1"]
+
+            1. d4 d5 0-1
+
+            [Event "Game three"]
+            [Date "2026.01.12"]
+            [White "PlayerE"]
+            [Black "PlayerF"]
+            [Result "1/2-1/2"]
+
+            1. c4 c5 2. Nc3 1/2-1/2
+            """;
+            assertThatThrownBy(() -> PgnParser.parse(pgn))
+                    .isInstanceOf(InvalidPgnException.class)
+                    .hasMessageContaining("batch");
+        }
 }

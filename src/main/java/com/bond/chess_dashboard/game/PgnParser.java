@@ -18,28 +18,36 @@ class PgnParser{
 
     private static final DateTimeFormatter PGN_DATE = DateTimeFormatter.ofPattern("yyyy.MM.dd");
     private static final DateTimeFormatter PGN_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final int MAX_GAMES_PER_IMPORT = 100;
 
     static ParsedGame parse(String pgn){
-        List<Game> games = new ArrayList<>();
-        try (PgnIterator pgnIterator = new PgnIterator(pgn.lines().toList())) {
-            for (Game game : pgnIterator) {
-                games.add(game);
-            }
-        } catch (Exception e) {
-            Throwable root = e;
-            while (root.getCause() != null) {
-                root = root.getCause();
-            }
-            throw new InvalidPgnException("Failed to parse PGN: " + root.getMessage(), e);
-        }
+        List<Game> games = load(pgn);
         if(games.isEmpty()) {
             throw new InvalidPgnException("No game found in PGN");
         }
+
         if(games.size() > 1) {
-            throw new InvalidPgnException("PGN contains multiple games; only one is supported");
+            throw new InvalidPgnException("PGN contains multiple games; use batch endpoint instead");
         }
         Game game = games.getFirst();
 
+        return extract(game);
+    }
+
+    static List<ParsedGame> parseAll(String pgn) {
+        List<Game> games = load(pgn);
+        if (games.isEmpty()) {
+            throw new InvalidPgnException("No game found in PGN");
+        }
+
+        if (games.size() > MAX_GAMES_PER_IMPORT) {
+            throw new InvalidPgnException("PGN contains too many games; maximum is " + MAX_GAMES_PER_IMPORT);
+        }
+            
+        return games.stream().map(PgnParser::extract).toList();
+    }
+
+    private static ParsedGame extract(Game game) {
         if (game.getHalfMoves() == null || game.getHalfMoves().isEmpty()) {
             throw new InvalidPgnException("PGN doesn't contain any moves");
         }
@@ -105,6 +113,21 @@ class PgnParser{
 
     private static int moveCount(Game game) {
         return (game.getHalfMoves().size() + 1) / 2;
-    } 
-    
+    }
+
+    private static List<Game> load(String pgn) {
+        List<Game> games = new ArrayList<>();
+        try (PgnIterator pgnIterator = new PgnIterator(pgn.lines().toList())) {
+            for (Game game : pgnIterator) {
+                games.add(game);
+            }
+        } catch (Exception e) {
+            Throwable root = e;
+            while (root.getCause() != null) {
+                root = root.getCause();
+            }
+            throw new InvalidPgnException("Failed to parse PGN: " + root.getMessage(), e);
+        }
+        return games;
+    }    
 }
