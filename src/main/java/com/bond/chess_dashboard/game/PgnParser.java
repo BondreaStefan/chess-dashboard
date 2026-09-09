@@ -74,7 +74,9 @@ class PgnParser{
 
         int moveCount = moveCount(game);
 
-        return new ParsedGame(result, whiteName, blackName, whiteElo, blackElo, playedAt, ecoCode, timeControl, moveCount);
+        String pgn = game.toPgn(true, true);
+
+        return new ParsedGame(result, whiteName, blackName, whiteElo, blackElo, playedAt, ecoCode, timeControl, moveCount, pgn);
     }
 
     private static OffsetDateTime parsePlayedAt(Game game) {

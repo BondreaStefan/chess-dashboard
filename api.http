@@ -228,6 +228,15 @@ Content-Type: application/json
   "pgn": "[Result \"1-0\"]\n\n1. e4 e5 1-0"
 }
 
+### Import multiple games
+POST http://localhost:8080/api/v1/games/import
+Content-Type: application/json
+
+{
+  "studentId": 2,
+  "pgn": "[Event \"One\"]\n[White \"S-Bondrea\"]\n[Black \"X\"]\n[Result \"1-0\"]\n\n1. e4 e5 1-0\n\n[Event \"Two\"]\n[White \"A\"]\n[Black \"B\"]\n[Result \"0-1\"]\n\n1. d4 d5 0-1\n\n[Event \"Three\"]\n[White \"Y\"]\n[Black \"S-Bondrea\"]\n[Result \"1-0\"]\n\n1. c4 c5 1-0"
+}
+
 ### Get game by id
 GET http://localhost:8080/api/v1/games/1
 

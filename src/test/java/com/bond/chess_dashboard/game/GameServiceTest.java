@@ -2,12 +2,16 @@ package com.bond.chess_dashboard.game;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+
+import java.util.List;
+
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -17,6 +21,8 @@ import com.bond.chess_dashboard.common.exception.InvalidPgnException;
 import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
 import com.bond.chess_dashboard.game.dto.CreateGameRequest;
 import com.bond.chess_dashboard.game.dto.GameDetailResponse;
+import com.bond.chess_dashboard.game.dto.ImportGamesRequest;
+import com.bond.chess_dashboard.game.dto.ImportGamesResponse;
 import com.bond.chess_dashboard.student.StudentService;
 import com.bond.chess_dashboard.student.dto.StudentResponse;
 
@@ -141,5 +147,53 @@ class GameServiceTest {
             .isInstanceOf(ResourceNotFoundException.class);
 
         verify(gameRepository, never()).findByStudentId(any(), any());
+    }
+
+    @Test
+    void importsOnlyGamesWhereStudentPlayed() {
+        String pgn = """
+            [Event "One"]
+            [White "S-Bondrea"]
+            [Black "Opponent"]
+            [Result "1-0"]
+
+            1. e4 e5 1-0
+
+            [Event "Two"]
+            [White "PlayerA"]
+            [Black "PlayerB"]
+            [Result "0-1"]
+
+            1. d4 d5 0-1
+
+            [Event "Three"]
+            [White "Opponent"]
+            [Black "S-Bondrea"]
+            [Result "1-0"]
+
+            1. c4 c5 1-0
+            """;
+
+        StudentResponse student = new StudentResponse(
+            1L, "Andrei", "Ionescu", "andrei@example.com",
+            null, null, "S-Bondrea", null, null);
+
+        ImportGamesRequest request = new ImportGamesRequest(1L, pgn);
+
+        when(studentService.getStudentById(1L)).thenReturn(student);
+
+        ImportGamesResponse response = gameService.importGames(request);
+
+        assertThat(response.imported()).isEqualTo(2);
+        assertThat(response.skipped()).isEqualTo(1);
+
+        ArgumentCaptor<List<Game>> captor = ArgumentCaptor.captor();
+        verify(gameRepository).saveAll(captor.capture());
+
+        List<Game> saved = captor.getValue();
+        assertThat(saved).extracting(Game::getStudentColor)
+            .containsExactly(Color.WHITE, Color.BLACK);
+        assertThat(saved).extracting(Game::getStudentResult)
+            .containsExactly(GameResult.WIN, GameResult.LOSS);
     }
 }

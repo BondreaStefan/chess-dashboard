@@ -11,5 +11,6 @@ public record ParsedGame(
     OffsetDateTime playedAt,
     String ecoCode,
     String timeControl,
-    int moveCount
+    int moveCount,
+    String pgn
 ) {}

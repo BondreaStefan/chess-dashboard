@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bond.chess_dashboard.game.dto.CreateGameRequest;
 import com.bond.chess_dashboard.game.dto.GameDetailResponse;
 import com.bond.chess_dashboard.game.dto.GameSummaryResponse;
+import com.bond.chess_dashboard.game.dto.ImportGamesRequest;
+import com.bond.chess_dashboard.game.dto.ImportGamesResponse;
 
 import jakarta.validation.Valid;
 
@@ -36,6 +38,12 @@ public class GameController {
         GameDetailResponse gameDetailResponse = gameService.createGame(request);
         return new ResponseEntity<>(gameDetailResponse, HttpStatus.CREATED);
     }
+
+    @PostMapping("/import")
+    public ResponseEntity<ImportGamesResponse> importGames(
+        @Valid @RequestBody ImportGamesRequest request) {
+            return new ResponseEntity<>(gameService.importGames(request), HttpStatus.OK);
+        }
 
     @GetMapping("/{id}")
     public ResponseEntity<GameDetailResponse> getGame(@PathVariable Long id) {
