@@ -23,9 +23,6 @@ class GameStatsRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private static final Long STUDENT = 1L;
-    private static final Long OTHER_STUDENT = 2L;
-
     private Game game(Long studentId, Color color, GameResult result) {
         return new Game(studentId, GameSource.MANUAL, "[Result \"1-0\"]", color, result);
     }
