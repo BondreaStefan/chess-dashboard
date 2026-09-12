@@ -254,3 +254,9 @@ GET http://localhost:8080/api/v1/games?studentId=999
 
 ### Delete game
 DELETE http://localhost:8080/api/v1/games/1
+
+### Student stats
+GET http://localhost:8080/api/v1/stats?studentId=2
+
+### Stats — non-existent student (expect 404)
+GET http://localhost:8080/api/v1/stats?studentId=999
