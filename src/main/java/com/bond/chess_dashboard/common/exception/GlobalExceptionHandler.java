@@ -2,6 +2,7 @@ package com.bond.chess_dashboard.common.exception;
 
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -31,6 +32,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
     ProblemDetail handleInvalidPgn(InvalidPgnException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
+
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+        MaxUploadSizeExceededException ex,
+        HttpHeaders headers,
+        HttpStatusCode status,
+        WebRequest request) {
+
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+            HttpStatus.CONTENT_TOO_LARGE, "Uploaded file is too large");
+
+    return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE).body(problem);
+}
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
