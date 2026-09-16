@@ -24,8 +24,8 @@ class StudentRepositoryTest {
     void setsCoachIdToNullWhenCoachIsDeleted() {
         Long coachId = (Long) entityManager.getEntityManager()
                 .createNativeQuery("""
-                        INSERT INTO coach (first_name, last_name, email)
-                        VALUES ('Ion', 'Popescu', 'ion@example.com')
+                        INSERT INTO coach (first_name, last_name, email, password_hash)
+                        VALUES ('Ion', 'Popescu', 'ion@example.com', 'hash')
                         RETURNING id
                         """)
                 .getSingleResult();
