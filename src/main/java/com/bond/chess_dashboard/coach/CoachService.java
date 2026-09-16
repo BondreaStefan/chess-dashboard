@@ -1,12 +1,10 @@
 package com.bond.chess_dashboard.coach;
 
 import org.springframework.stereotype.Service;
-import com.bond.chess_dashboard.coach.dto.CreateCoachRequest;
 import com.bond.chess_dashboard.coach.dto.UpdateCoachRequest;
 import org.springframework.transaction.annotation.Transactional;
 import com.bond.chess_dashboard.coach.dto.CoachResponse;
 import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
-import com.bond.chess_dashboard.common.exception.DuplicateResourceException;
 import java.util.List;
 
 @Service
@@ -16,16 +14,6 @@ public class CoachService {
 
     public CoachService(CoachRepository coachRepository) {
         this.coachRepository = coachRepository;
-    }
-
-    @Transactional
-    public CoachResponse createCoach(CreateCoachRequest request) {
-
-        if(coachRepository.existsByEmail(request.email())) {
-            throw new DuplicateResourceException("Coach", "email", request.email());
-        }
-        Coach saved = coachRepository.save(CoachMapper.toEntity(request));
-        return CoachMapper.toResponse(saved);
     }
 
     private Coach findCoachById(Long id) {

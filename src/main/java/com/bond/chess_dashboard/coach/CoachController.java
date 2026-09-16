@@ -2,7 +2,6 @@ package com.bond.chess_dashboard.coach;
 
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import com.bond.chess_dashboard.coach.dto.UpdateCoachRequest;
 import jakarta.validation.Valid;
-import com.bond.chess_dashboard.coach.dto.CreateCoachRequest;
 import com.bond.chess_dashboard.coach.dto.CoachResponse;
 import org.springframework.http.HttpStatus;
 import java.util.List;
@@ -25,12 +23,6 @@ public class CoachController {
 
     public CoachController(CoachService coachService) {
         this.coachService = coachService;
-    }
-
-    @PostMapping
-    public ResponseEntity<CoachResponse> createCoach(@Valid @RequestBody CreateCoachRequest request){
-        CoachResponse coachResponse = coachService.createCoach(request);
-        return new ResponseEntity<>(coachResponse, HttpStatus.CREATED);
     }
 
     @GetMapping

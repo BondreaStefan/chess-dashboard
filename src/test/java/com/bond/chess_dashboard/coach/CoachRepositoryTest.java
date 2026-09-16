@@ -19,7 +19,7 @@ class CoachRepositoryTest {
 
     @Test
     void savesCoachAndGeneratesId() {
-        Coach coach = new Coach("Ion", "Popescu", "ion@example.com");
+        Coach coach = new Coach("Ion", "Popescu", "ion@example.com", "$2a$10$7QJ1Z1Z1Z1Z1Z1Z1Z1Z1eO");
 
         Coach saved = coachRepository.saveAndFlush(coach);
 
