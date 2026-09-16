@@ -2,6 +2,8 @@ package com.bond.chess_dashboard.coach;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Table;
 import jakarta.persistence.GenerationType;
@@ -37,15 +39,33 @@ class Coach {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    @Column(name = "password_hash", nullable = false, length = 60)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
+    private Role role;
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled;
 
     protected Coach() {
 
     }
 
-    public Coach(String firstName, String lastName, String email) {
+    public Coach(String firstName, String lastName, String email, String passwordHash) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
+        this.passwordHash = passwordHash;
+        this.role = Role.COACH;
+        this.enabled = true;
+    }
+
+    static Coach admin(String firstName, String lastName, String email, String passwordHash) {
+        Coach coach = new Coach(firstName, lastName, email, passwordHash);
+        coach.role = Role.ADMIN;
+        return coach;
     }
 
     public Long getId() {
@@ -70,6 +90,18 @@ class Coach {
 
     public OffsetDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public void setFirstName(String firstName) {
@@ -98,6 +130,8 @@ class Coach {
                 ", email='" + email + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
+                ", role=" + role +
+                ", enabled=" + enabled +
                 '}';
     }
 
