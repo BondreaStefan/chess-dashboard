@@ -3,9 +3,13 @@ package com.bond.chess_dashboard.coach;
 import org.springframework.stereotype.Service;
 import com.bond.chess_dashboard.coach.dto.UpdateCoachRequest;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.bond.chess_dashboard.coach.dto.CoachCredentials;
 import com.bond.chess_dashboard.coach.dto.CoachResponse;
+import com.bond.chess_dashboard.common.exception.DuplicateResourceException;
 import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CoachService {
@@ -52,4 +56,18 @@ public class CoachService {
         return CoachMapper.toResponse(coach);
     }
 
+    @Transactional
+    public CoachResponse register(String firstName, String lastName, String email, String passwordHash) {
+        if (coachRepository.existsByEmail(email)) {
+            throw new DuplicateResourceException("Coach", "email", email);
+        }
+        Coach coach = new Coach(firstName, lastName, email, passwordHash);
+        return CoachMapper.toResponse(coachRepository.save(coach));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<CoachCredentials> findCredentialsByEmail(String email) {
+        return coachRepository.findByEmail(email)
+                .map(c -> new CoachCredentials(c.getId(), c.getEmail(), c.getPasswordHash(), c.getRole(), c.isEnabled()));
+    }
 }
