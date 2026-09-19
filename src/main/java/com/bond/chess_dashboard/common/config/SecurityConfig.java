@@ -15,7 +15,6 @@ public class SecurityConfig {
     
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        System.out.println("SecurityConfig loaded");
         return http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
