@@ -1,5 +1,6 @@
 package com.bond.chess_dashboard.coach;
 
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -8,12 +9,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
 
+import com.bond.chess_dashboard.auth.JwtService;
+import com.bond.chess_dashboard.common.config.SecurityConfig;
 import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
 
 @WebMvcTest(CoachController.class)
+@Import(SecurityConfig.class)
+@WithMockUser(roles = "COACH")
 class CoachControllerTest {
 
     @Autowired
@@ -21,6 +29,9 @@ class CoachControllerTest {
 
     @MockitoBean
     private CoachService coachService;
+
+    @MockitoBean 
+    private JwtService jwtService;
 
     @Test
     void returns404WhenCoachDoesNotExist() throws Exception {
@@ -30,5 +41,14 @@ class CoachControllerTest {
         mockMvc.perform(get("/api/v1/coaches/999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.detail").value("Coach with id 999 not found"));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void rejectsUnauthenticatedRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/coaches"))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(coachService);
     }
 }

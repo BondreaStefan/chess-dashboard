@@ -20,9 +20,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.bond.chess_dashboard.auth.JwtService;
+import com.bond.chess_dashboard.common.config.SecurityConfig;
 import com.bond.chess_dashboard.common.config.WebConfig;
 import com.bond.chess_dashboard.common.exception.InvalidPgnException;
 import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
@@ -31,7 +35,8 @@ import com.bond.chess_dashboard.game.dto.GameDetailResponse;
 import com.bond.chess_dashboard.game.dto.GameSummaryResponse;
 
 @WebMvcTest(GameController.class)
-@Import(WebConfig.class)
+@Import({WebConfig.class, SecurityConfig.class})
+@WithMockUser(roles = "COACH")
 class GameControllerTest {
 
     @Autowired
@@ -39,6 +44,9 @@ class GameControllerTest {
 
     @MockitoBean
     private GameService gameService;
+
+    @MockitoBean 
+    private JwtService jwtService;
 
     @Test
     void returns201WhenGameIsCreated() throws Exception {
@@ -125,7 +133,7 @@ class GameControllerTest {
             "Rookin-Good", "1-0", "B21", "900+10",
             1430, 1400, 27);
 
-    Page<GameSummaryResponse> page =
+        Page<GameSummaryResponse> page =
             new PageImpl<>(List.of(summary), PageRequest.of(0, 10), 1);
 
     when(gameService.getGamesByStudentId(eq(1L), any(Pageable.class))).thenReturn(page);
@@ -137,5 +145,14 @@ class GameControllerTest {
             .andExpect(jsonPath("$.content[0].studentResult").value("WIN"))
             .andExpect(jsonPath("$.page.totalElements").value(1))
             .andExpect(jsonPath("$.page.number").value(0));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void rejectsUnauthenticatedRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/games").param("studentId", "1"))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(gameService);
     }
 }
