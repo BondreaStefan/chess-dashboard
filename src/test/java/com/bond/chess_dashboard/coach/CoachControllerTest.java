@@ -47,7 +47,7 @@ class CoachControllerTest {
     @WithAnonymousUser
     void rejectsUnauthenticatedRequest() throws Exception {
         mockMvc.perform(get("/api/v1/coaches"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(coachService);
     }

@@ -151,7 +151,7 @@ class GameControllerTest {
     @WithAnonymousUser
     void rejectsUnauthenticatedRequest() throws Exception {
         mockMvc.perform(get("/api/v1/games").param("studentId", "1"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(gameService);
     }

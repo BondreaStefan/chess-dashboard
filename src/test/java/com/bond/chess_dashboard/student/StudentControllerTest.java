@@ -129,7 +129,7 @@ class StudentControllerTest {
     @WithAnonymousUser
     void rejectsUnauthenticatedRequest() throws Exception {
         mockMvc.perform(get("/api/v1/students"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(studentService);
     }
