@@ -289,3 +289,24 @@ Content-Type: application/json
   "email": "stefan@example.com",
   "password": "gresit"
 }
+
+### Login
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "stefan@example.com",
+  "password": "parolatest123"
+}
+
+### Coaches — with token (expect 200)
+GET http://localhost:8080/api/v1/coaches
+Authorization: Bearer {{login.response.body.token}}
+
+### Coaches — without token (expect 403)
+GET http://localhost:8080/api/v1/coaches
+
+### Coaches — garbage token (expect 403)
+GET http://localhost:8080/api/v1/coaches
+Authorization: Bearer nu-este-un-token
