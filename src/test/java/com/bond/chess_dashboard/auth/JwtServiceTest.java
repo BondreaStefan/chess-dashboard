@@ -15,28 +15,43 @@ class JwtServiceTest {
 
     @Test
     void generatesValidToken() {
-        String token = jwtService.generateToken("coach@example.com", Role.COACH);
+        String token = jwtService.generateToken(1L, "coach@example.com", Role.COACH);
 
         assertThat(jwtService.isValid(token)).isTrue();
     }
 
     @Test
     void extractsEmailFromToken() {
-        String token = jwtService.generateToken("coach@example.com", Role.COACH);
+        String token = jwtService.generateToken(1L, "coach@example.com", Role.COACH);
 
         assertThat(jwtService.extractEmail(token)).isEqualTo("coach@example.com");
     }
 
     @Test
     void extractsRoleFromToken() {
-        String token = jwtService.generateToken("admin@example.com", Role.ADMIN);
+        String token = jwtService.generateToken(1L, "admin@example.com", Role.ADMIN);
 
         assertThat(jwtService.extractRole(token)).isEqualTo(Role.ADMIN);
     }
 
     @Test
+    void extractsIdFromToken() {
+        String token = jwtService.generateToken(42L, "coach@example.com", Role.COACH);
+
+        assertThat(jwtService.extractId(token)).isEqualTo(42L);
+    }
+
+    @Test
+    void extractsLargeIdFromToken() {
+        long largeId = 3_000_000_000L;
+        String token = jwtService.generateToken(largeId, "coach@example.com", Role.COACH);
+
+        assertThat(jwtService.extractId(token)).isEqualTo(largeId);
+    }
+
+    @Test
     void rejectsTamperedToken() {
-        String token = jwtService.generateToken("coach@example.com", Role.COACH);
+        String token = jwtService.generateToken(1L, "coach@example.com", Role.COACH);
 
         // schimbă un caracter din payload — semnătura nu mai corespunde
         String tampered = token.substring(0, 20) + "X" + token.substring(21);
@@ -47,7 +62,7 @@ class JwtServiceTest {
     @Test
     void rejectsExpiredToken() {
         JwtService shortLived = new JwtService(SECRET, -1000L);
-        String token = shortLived.generateToken("coach@example.com", Role.COACH);
+        String token = shortLived.generateToken(1L, "coach@example.com", Role.COACH);
 
         assertThat(shortLived.isValid(token)).isFalse();
     }
@@ -56,7 +71,7 @@ class JwtServiceTest {
     void rejectsTokenSignedWithDifferentKey() {
         JwtService other = new JwtService(
                 "a-completely-different-secret-key-for-testing-purposes-99", ONE_HOUR);
-        String token = other.generateToken("coach@example.com", Role.COACH);
+        String token = other.generateToken(1L, "coach@example.com", Role.COACH);
 
         assertThat(jwtService.isValid(token)).isFalse();
     }

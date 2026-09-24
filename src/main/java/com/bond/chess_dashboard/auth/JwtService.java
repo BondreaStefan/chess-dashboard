@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.bond.chess_dashboard.coach.Role;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -29,41 +30,48 @@ public class JwtService {
         this.expirationMs = expirationMs;
 
     }
-    public String generateToken(String email, Role role) {
+    public String generateToken(Long id, String email, Role role) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(email)
+                .claim("role", role.name())
+                .claim("id", id)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expirationMs))
                 .signWith(key)
-                .claim("role", role)
                 .compact();
     }
 
     public String extractEmail(String token) {
-        return Jwts.parser().verifyWith(key).build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+        return parseClaims(token).getSubject();
     }
 
     public Role extractRole(String token) {
-        String role = Jwts.parser().verifyWith(key).build()
-                .parseSignedClaims(token)
-                .getPayload()
+        String role = parseClaims(token)
                 .get("role", String.class);
         return Role.valueOf(role);
         
     }
 
+    public Long extractId(String token) {
+        Object id = parseClaims(token).get("id");
+        return ((Number) id).longValue();
+    }
+
     public boolean isValid(String token) {
         try {
-            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+            parseClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             
         }
         return false;
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
     
 }

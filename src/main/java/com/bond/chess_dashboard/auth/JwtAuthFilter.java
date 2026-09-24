@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.bond.chess_dashboard.auth.dto.AuthenticatedCoach;
 import com.bond.chess_dashboard.coach.Role;
 
 import jakarta.servlet.FilterChain;
@@ -40,10 +41,13 @@ public class JwtAuthFilter extends OncePerRequestFilter{
             if(jwt != null && jwtService.isValid(jwt)) {
                 String email = jwtService.extractEmail(jwt);
                 Role role = jwtService.extractRole(jwt);
+                Long id = jwtService.extractId(jwt);
                 var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
 
+                var principal = new AuthenticatedCoach(id, email, role);
+
                 UsernamePasswordAuthenticationToken authToken = 
-                        new UsernamePasswordAuthenticationToken(email, null, authorities);
+                        new UsernamePasswordAuthenticationToken(principal, null, authorities);
                 SecurityContextHolder.getContext()
                         .setAuthentication(authToken);
             }

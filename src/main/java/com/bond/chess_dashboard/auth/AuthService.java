@@ -36,7 +36,7 @@ public class AuthService {
         String hash = passwordEncoder.encode(request.password());
         CoachResponse coach = coachService.register(request.firstName(), request.lastName(), request.email(), hash);
 
-        String token = jwtService.generateToken(coach.email(), Role.COACH);
+        String token = jwtService.generateToken(coach.id(), coach.email(), Role.COACH);
         return new AuthResponse(token, coach.id(), coach.email(), Role.COACH);
     }
 
@@ -53,7 +53,7 @@ public class AuthService {
             throw new AccountDisabledException("Account is disabled");
         }
         
-        String token = jwtService.generateToken(credentials.email(), credentials.role());
+        String token = jwtService.generateToken(credentials.id(), credentials.email(), credentials.role());
 
         return new AuthResponse(token, credentials.id(), credentials.email(), credentials.role());
     }
