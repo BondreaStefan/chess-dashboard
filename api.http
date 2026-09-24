@@ -311,3 +311,7 @@ GET http://localhost:8080/api/v1/coaches
 ### Coaches — garbage token (expect 401)
 GET http://localhost:8080/api/v1/coaches
 Authorization: Bearer nu-este-un-token
+
+### Me — verifică principalul
+GET http://localhost:8080/api/v1/coaches/me
+Authorization: Bearer {{login.response.body.token}}

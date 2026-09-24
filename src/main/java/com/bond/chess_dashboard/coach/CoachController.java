@@ -6,10 +6,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import com.bond.chess_dashboard.coach.dto.UpdateCoachRequest;
 import jakarta.validation.Valid;
+
+import com.bond.chess_dashboard.auth.dto.AuthenticatedCoach;
 import com.bond.chess_dashboard.coach.dto.CoachResponse;
 import org.springframework.http.HttpStatus;
 import java.util.List;
@@ -48,5 +51,10 @@ public class CoachController {
     public ResponseEntity<CoachResponse> updateCoach(@PathVariable Long id, @Valid @RequestBody UpdateCoachRequest request){
         CoachResponse coachResponse = coachService.updateCoach(id, request);
         return new ResponseEntity<>(coachResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<AuthenticatedCoach> me(@AuthenticationPrincipal AuthenticatedCoach coach) {
+        return ResponseEntity.ok(coach);
     }
 }
