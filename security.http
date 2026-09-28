@@ -1,0 +1,118 @@
+### 1a. Register coach A (o singură dată; la rerulare dă 409)
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Ana",
+  "lastName": "Antrenor",
+  "email": "coach.a@example.com",
+  "password": "parolaA12345"
+}
+
+### 1b. Register coach B (o singură dată)
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Bogdan",
+  "lastName": "Antrenor",
+  "email": "coach.b@example.com",
+  "password": "parolaB12345"
+}
+
+### 2a. Login A
+# @name loginA
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "coach.a@example.com",
+  "password": "parolaA12345"
+}
+
+### 2b. Login B
+# @name loginB
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "coach.b@example.com",
+  "password": "parolaB12345"
+}
+
+### 3a. A își creează un elev → 201
+# @name studentA
+POST http://localhost:8080/api/v1/students
+Authorization: Bearer {{loginA.response.body.token}}
+Content-Type: application/json
+
+{
+  "firstName": "Elev3",
+  "lastName": "DeA",
+  "email": "elev.a3@example.com"
+}
+
+### 3b. B își creează un elev → 201
+# @name studentB
+POST http://localhost:8080/api/v1/students
+Authorization: Bearer {{loginB.response.body.token}}
+Content-Type: application/json
+
+{
+  "firstName": "Elev3",
+  "lastName": "DeB",
+  "email": "elev.b3@example.com"
+}
+
+### 4. A cere elevul lui B → 404
+GET http://localhost:8080/api/v1/students/{{studentB.response.body.id}}
+Authorization: Bearer {{loginA.response.body.token}}
+
+### 5. A listează → doar elevul lui (un singur element)
+GET http://localhost:8080/api/v1/students
+Authorization: Bearer {{loginA.response.body.token}}
+
+### 6. A modifică elevul lui B → 404
+PUT http://localhost:8080/api/v1/students/{{studentB.response.body.id}}
+Authorization: Bearer {{loginA.response.body.token}}
+Content-Type: application/json
+
+{
+  "firstName": "Furat",
+  "lastName": "DeA"
+}
+
+### 7. A încarcă o partidă pentru elevul lui B → 404
+POST http://localhost:8080/api/v1/games
+Authorization: Bearer {{loginA.response.body.token}}
+Content-Type: application/json
+
+{
+  "studentId": {{studentB.response.body.id}},
+  "studentColor": "WHITE",
+  "pgn": "[Result \"1-0\"]\n\n1. e4 e5 1-0"
+}
+
+### 8. A cere partidele elevului lui B → 404
+GET http://localhost:8080/api/v1/games?studentId={{studentB.response.body.id}}
+Authorization: Bearer {{loginA.response.body.token}}
+
+### 9. A cere statisticile elevului lui B → 404
+GET http://localhost:8080/api/v1/stats?studentId={{studentB.response.body.id}}
+Authorization: Bearer {{loginA.response.body.token}}
+
+### 10. A încearcă reatribuirea (doar ADMIN) → 403
+PUT http://localhost:8080/api/v1/students/{{studentA.response.body.id}}/coach
+Authorization: Bearer {{loginA.response.body.token}}
+Content-Type: application/json
+
+{
+  "coachId": {{loginB.response.body.coachId}}
+}
+
+### 11. B își șterge propriul elev → 204 (control pozitiv)
+DELETE http://localhost:8080/api/v1/students/{{studentB.response.body.id}}
+Authorization: Bearer {{loginB.response.body.token}}
+
+### 12. Fără token → 401
+GET http://localhost:8080/api/v1/students

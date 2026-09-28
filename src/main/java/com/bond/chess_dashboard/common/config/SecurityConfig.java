@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.bond.chess_dashboard.auth.JwtAuthFilter;
 
+import jakarta.servlet.DispatcherType;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity  
@@ -26,6 +28,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
@@ -37,7 +40,15 @@ public class SecurityConfig {
                                     {"type":"about:blank","title":"Unauthorized","status":401,\
                                     "detail":"Authentication is required","instance":"%s"}"""
                                     .formatted(request.getRequestURI()));
-                }))
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpStatus.FORBIDDEN.value());
+                            response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+                            response.getWriter().write("""
+                                    {"type":"about:blank","title":"Forbidden","status":403,\
+                                    "detail":"Access denied","instance":"%s"}"""
+                                    .formatted(request.getRequestURI()));
+                        }))     
                 .build();
     }
 
