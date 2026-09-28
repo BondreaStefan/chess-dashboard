@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import com.bond.chess_dashboard.coach.dto.UpdateCoachRequest;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bond.chess_dashboard.auth.dto.AuthenticatedCoach;
 import com.bond.chess_dashboard.coach.dto.CoachCredentials;
 import com.bond.chess_dashboard.coach.dto.CoachResponse;
 import com.bond.chess_dashboard.common.exception.DuplicateResourceException;
@@ -69,5 +70,15 @@ public class CoachService {
     public Optional<CoachCredentials> findCredentialsByEmail(String email) {
         return coachRepository.findByEmail(email)
                 .map(c -> new CoachCredentials(c.getId(), c.getEmail(), c.getPasswordHash(), c.getRole(), c.isEnabled()));
+    }
+
+    @Transactional(readOnly = true)
+    public CoachResponse getCurrentCoach(AuthenticatedCoach coach) {
+        return getCoachById(coach.id());
+    }
+
+    @Transactional
+    public CoachResponse updateCurrentCoach(UpdateCoachRequest request, AuthenticatedCoach coach) {
+        return updateCoach(coach.id(), request);
     }
 }

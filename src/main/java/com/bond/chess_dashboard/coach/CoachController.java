@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/coaches")
+@PreAuthorize("hasRole('ADMIN')")
 public class CoachController {
     
     private final CoachService coachService;
@@ -28,11 +30,27 @@ public class CoachController {
         this.coachService = coachService;
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CoachResponse> me(@AuthenticationPrincipal AuthenticatedCoach coach) {
+        CoachResponse coachResponse = coachService.getCurrentCoach(coach);
+        return new ResponseEntity<>(coachResponse, HttpStatus.OK);
+    }
+
+    @PutMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CoachResponse> updateMe(
+            @Valid @RequestBody UpdateCoachRequest request,
+            @AuthenticationPrincipal AuthenticatedCoach coach) {
+        CoachResponse coachResponse = coachService.updateCurrentCoach(request, coach);
+        return new ResponseEntity<>(coachResponse, HttpStatus.OK);
+
+    }
+
     @GetMapping
     public ResponseEntity<List<CoachResponse>> listCoaches(){
         List<CoachResponse> coaches = coachService.getAllCoaches();
         return new ResponseEntity<>(coaches, HttpStatus.OK);
-
     }
 
     @GetMapping("/{id}")
@@ -51,10 +69,5 @@ public class CoachController {
     public ResponseEntity<CoachResponse> updateCoach(@PathVariable Long id, @Valid @RequestBody UpdateCoachRequest request){
         CoachResponse coachResponse = coachService.updateCoach(id, request);
         return new ResponseEntity<>(coachResponse, HttpStatus.OK);
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<AuthenticatedCoach> me(@AuthenticationPrincipal AuthenticatedCoach coach) {
-        return ResponseEntity.ok(coach);
     }
 }
