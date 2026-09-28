@@ -1,13 +1,17 @@
 package com.bond.chess_dashboard.student;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import com.bond.chess_dashboard.student.dto.CreateStudentRequest;
 import com.bond.chess_dashboard.student.dto.StudentResponse;
 import com.bond.chess_dashboard.student.dto.UpdateStudentRequest;
 import org.springframework.transaction.annotation.Transactional;
 import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
+import com.bond.chess_dashboard.auth.dto.AuthenticatedCoach;
 import com.bond.chess_dashboard.coach.CoachService;
+import com.bond.chess_dashboard.coach.Role;
 import com.bond.chess_dashboard.common.exception.DuplicateResourceException;
 
 @Service
@@ -22,14 +26,10 @@ public class StudentService {
     }
 
     @Transactional
-    public StudentResponse createStudent(CreateStudentRequest request) {
+    public StudentResponse createStudent(CreateStudentRequest request, AuthenticatedCoach coach) {
 
         if(studentRepository.existsByEmail(request.email())) {
             throw new DuplicateResourceException("Student", "email", request.email());
-        }
-
-        if((request.coachId() != null && !coachService.coachExists(request.coachId()))) {
-            throw new ResourceNotFoundException("Coach", request.coachId());
         }
 
         if(request.lichessUsername() != null && studentRepository.existsByLichessUsername(request.lichessUsername())) {
@@ -40,48 +40,41 @@ public class StudentService {
             throw new DuplicateResourceException("Student", "chessComUsername", request.chessComUsername());
         }
 
-        Student saved = studentRepository.save(StudentMapper.toEntity(request));
+        Student saved = studentRepository.save(StudentMapper.toEntity(request, coach.id()));
         return StudentMapper.toResponse(saved);
     }
 
-    private Student findStudentById(Long id) {
-        return studentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Student", id));
+    @Transactional(readOnly = true)
+    public StudentResponse getStudentById(Long id, AuthenticatedCoach coach) {
+        return StudentMapper.toResponse(findStudentFor(id, coach));
+    }
+
+    private Student findStudentFor(Long id, AuthenticatedCoach coach) {
+        Optional<Student> student = coach.role() == Role.ADMIN
+                ? studentRepository.findById(id)
+                : studentRepository.findByIdAndCoachId(id, coach.id());
+        return student.orElseThrow(() -> new ResourceNotFoundException("Student", id));
     }
 
     @Transactional(readOnly = true)
-    public StudentResponse getStudentById(Long id) {
-        return StudentMapper.toResponse(findStudentById(id));
-    }
-
-    @Transactional(readOnly = true)
-    public List<StudentResponse> getAllStudents() {
-        List<Student> students = studentRepository.findAll();
+    public List<StudentResponse> getStudents(AuthenticatedCoach coach) {
+        List<Student> students = coach.role() == Role.ADMIN
+                ? studentRepository.findAll()
+                : studentRepository.findByCoachId(coach.id());
         return students.stream()
                 .map(StudentMapper::toResponse)
                 .toList();
     }
-
-    @Transactional(readOnly = true)
-    public List<StudentResponse> getStudentsByCoachId(Long coachId) {
-        if(!coachService.coachExists(coachId)) {
-            throw new ResourceNotFoundException("Coach", coachId);
-        }
-        List<Student> students = studentRepository.findByCoachId(coachId);
-        return students.stream()
-                .map(StudentMapper::toResponse)
-                .toList();
-    }
-
+    
     @Transactional
-    public void deleteStudent(Long id) {
-        Student student = findStudentById(id);
+    public void deleteStudent(Long id, AuthenticatedCoach coach) {
+        Student student = findStudentFor(id, coach);
         studentRepository.delete(student);
     }
 
     @Transactional
-    public StudentResponse updateStudent(Long id, UpdateStudentRequest request) {
-        Student student = findStudentById(id);
+    public StudentResponse updateStudent(Long id, UpdateStudentRequest request, AuthenticatedCoach coach) {
+        Student student = findStudentFor(id, coach);
 
         if(request.lichessUsername() != null && !request.lichessUsername().equals(student.getLichessUsername()) 
                 && studentRepository.existsByLichessUsername(request.lichessUsername())) {
@@ -102,19 +95,16 @@ public class StudentService {
     }
 
     @Transactional
-    public StudentResponse assignCoach(Long studentId, Long coachId) {
-        Student student = findStudentById(studentId);
+    public StudentResponse assignCoach(Long studentId, Long targetCoachId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Student", studentId));
 
-        if (coachId != null && !coachService.coachExists(coachId)) {
-            throw new ResourceNotFoundException("Coach", coachId);
+        if (targetCoachId != null && !coachService.coachExists(targetCoachId)) {
+            throw new ResourceNotFoundException("Coach", targetCoachId);
         }
 
-        student.setCoachId(coachId);
+        student.setCoachId(targetCoachId);
         return StudentMapper.toResponse(student);
-    }
-
-    public boolean studentExists(Long id) {
-        return studentRepository.existsById(id);
     }
 
 }

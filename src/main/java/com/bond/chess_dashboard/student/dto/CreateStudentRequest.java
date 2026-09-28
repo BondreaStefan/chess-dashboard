@@ -18,8 +18,6 @@ public record CreateStudentRequest(
     @Email(message = "{email.invalid}")
     String email,
 
-    Long coachId,
-
     @Size(max = 100, message = "{username.tooLong}")
     String lichessUsername,
 

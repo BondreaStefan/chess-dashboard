@@ -10,12 +10,12 @@ class StudentMapper {
 
     }
     
-    static Student toEntity(CreateStudentRequest request) {
+    static Student toEntity(CreateStudentRequest request, Long coachId) {
         Student student = new Student(
             request.firstName(),
             request.lastName(),
             request.email(),
-            request.coachId()
+            coachId
         );
         student.setLichessUsername(request.lichessUsername());
         student.setChessComUsername(request.chessComUsername());
