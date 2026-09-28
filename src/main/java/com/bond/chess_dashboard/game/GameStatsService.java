@@ -3,9 +3,10 @@ package com.bond.chess_dashboard.game;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
+import com.bond.chess_dashboard.auth.dto.AuthenticatedCoach;
 import com.bond.chess_dashboard.game.dto.StudentStatsResponse;
 import com.bond.chess_dashboard.student.StudentService;
+import com.bond.chess_dashboard.student.dto.StudentResponse;
 
 @Service 
 public class GameStatsService {
@@ -19,12 +20,10 @@ public class GameStatsService {
     }
 
     @Transactional(readOnly = true)
-    public StudentStatsResponse getStatsByStudentId(Long studentId) {
-        if(!studentService.studentExists(studentId)) {
-            throw new ResourceNotFoundException("Student", studentId);
-        }
+    public StudentStatsResponse getStatsByStudentId(Long studentId, AuthenticatedCoach coach) {
+        StudentResponse student = studentService.getStudentById(studentId, coach);
 
-        StudentStatsProjection projection = gameStatsRepository.findStatsByStudentId(studentId);
+        StudentStatsProjection projection = gameStatsRepository.findStatsByStudentId(student.id());
 
         return new StudentStatsResponse(
             projection.getTotal(),

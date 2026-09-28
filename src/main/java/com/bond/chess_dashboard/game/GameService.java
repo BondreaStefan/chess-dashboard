@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 
+import com.bond.chess_dashboard.auth.dto.AuthenticatedCoach;
 import com.bond.chess_dashboard.common.exception.InvalidPgnException;
 import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
 import com.bond.chess_dashboard.game.dto.CreateGameRequest;
@@ -32,9 +33,9 @@ public class GameService {
     }
 
     @Transactional
-    public GameDetailResponse createGame(CreateGameRequest request) {
+    public GameDetailResponse createGame(CreateGameRequest request, AuthenticatedCoach coach) {
        
-        StudentResponse student = studentService.getStudentById(request.studentId());
+        StudentResponse student = studentService.getStudentById(request.studentId(), coach);
 
         ParsedGame parsed = PgnParser.parse(request.pgn());
 
@@ -55,8 +56,8 @@ public class GameService {
     }
 
     @Transactional
-    public ImportGamesResponse importGames(ImportGamesRequest request) {
-        StudentResponse student = studentService.getStudentById(request.studentId());
+    public ImportGamesResponse importGames(ImportGamesRequest request, AuthenticatedCoach coach) {
+        StudentResponse student = studentService.getStudentById(request.studentId(), coach);
 
         List<ParsedGame> parsedGames = PgnParser.parseAll(request.pgn());
         List<Game> toSave = new ArrayList<>();
@@ -80,22 +81,23 @@ public class GameService {
     }
 
     @Transactional(readOnly = true)
-    public GameDetailResponse getGameById(Long id) {
-        return GameMapper.toDetailResponse(findGameById(id));
+    public GameDetailResponse getGameById(Long id, AuthenticatedCoach coach) {
+        Game game = findGameById(id);
+        studentService.getStudentById(game.getStudentId(), coach);   // throws 404 if student doesn't belong to coach 
+        return GameMapper.toDetailResponse(game);
     }
 
     @Transactional
-    public void deleteGame(Long id) {
+    public void deleteGame(Long id, AuthenticatedCoach coach) {
         Game game = findGameById(id);
+        studentService.getStudentById(game.getStudentId(), coach);   // throws 404 if student doesn't belong to coach 
         gameRepository.delete(game);
     }
 
     @Transactional(readOnly = true)
-    public Page<GameSummaryResponse> getGamesByStudentId(Long studentId, Pageable pageable) {
-        if (!studentService.studentExists(studentId)) {
-            throw new ResourceNotFoundException("Student", studentId);
-        }
-        Page<Game> games = gameRepository.findByStudentId(studentId, pageable);
+    public Page<GameSummaryResponse> getGamesByStudentId(Long studentId, Pageable pageable, AuthenticatedCoach coach) {
+        StudentResponse student = studentService.getStudentById(studentId, coach);
+        Page<Game> games = gameRepository.findByStudentId(student.id(), pageable);
         return games.map(GameMapper::toSummaryResponse);
     }
 
