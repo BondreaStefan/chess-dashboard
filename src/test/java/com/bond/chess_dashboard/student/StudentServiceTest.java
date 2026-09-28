@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.bond.chess_dashboard.auth.dto.AuthenticatedCoach;
 import com.bond.chess_dashboard.coach.CoachService;
+import com.bond.chess_dashboard.coach.Role;
 import com.bond.chess_dashboard.common.exception.DuplicateResourceException;
 import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
 import com.bond.chess_dashboard.student.dto.CreateStudentRequest;
@@ -33,6 +36,8 @@ class StudentServiceTest {
     @InjectMocks
     private StudentService studentService;
 
+    private static final AuthenticatedCoach COACH = new AuthenticatedCoach(1L, "coach@example.com", Role.COACH);
+
     @Test
     void allowsUpdateWhenLichessUsernameIsUnchanged() {
         Student existing = new Student("Andrei", "Ionescu", "andrei@example.com", 1L);
@@ -41,9 +46,9 @@ class StudentServiceTest {
         UpdateStudentRequest request = new UpdateStudentRequest(
             "Andrei-Mihai", "Ionescu", "andrei_chess", null);
 
-        when(studentRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(studentRepository.findByIdAndCoachId(1L, 1L)).thenReturn(Optional.of(existing));
 
-        StudentResponse response = studentService.updateStudent(1L, request);
+        StudentResponse response = studentService.updateStudent(1L, request, COACH);
 
         assertThat(response.firstName()).isEqualTo("Andrei-Mihai");
         assertThat(response.lichessUsername()).isEqualTo("andrei_chess");
@@ -59,52 +64,63 @@ class StudentServiceTest {
         UpdateStudentRequest request = new UpdateStudentRequest("Ion", "Popescu",
         "andrei_chess", null);
 
-        when(studentRepository.findById(2L)).thenReturn(Optional.of(secondStudent));
+        when(studentRepository.findByIdAndCoachId(2L, 1L)).thenReturn(Optional.of(secondStudent));
         when(studentRepository.existsByLichessUsername("andrei_chess")).thenReturn(true);
 
-        assertThatThrownBy(() -> studentService.updateStudent(2L, request))
+        assertThatThrownBy(() -> studentService.updateStudent(2L, request, COACH))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("lichessUsername");
 
     }
 
     @Test
-    void throwsWhenCreatingWithNonExistentCoach(){
+    void assignsCurrentCoachToNewStudent() {
         CreateStudentRequest request = new CreateStudentRequest("Ion", "Popescu",
-         "ion@example.com", 1L, null, null);
-
-        when(coachService.coachExists(1L)).thenReturn(false);
-
-        assertThatThrownBy(() -> studentService.createStudent(request))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Coach");
-        
-        verify(studentRepository, never()).save(any());
-    }
-
-    @Test
-    void createsWhenCoachIsNull(){
-        CreateStudentRequest request = new CreateStudentRequest("Ion", "Popescu",
-         "ion@example.com", null, null, null);
+        "ion@example.com", null, null);
         when(studentRepository.save(any(Student.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        StudentResponse response = studentService.createStudent(request);
-        assertThat(response.firstName()).isEqualTo("Ion");
-        assertThat(response.lastName()).isEqualTo("Popescu");
-        assertThat(response.email()).isEqualTo("ion@example.com");
-        assertThat(response.coachId()).isNull();  
+        StudentResponse response = studentService.createStudent(request, COACH);
 
-        verify(coachService, never()).coachExists(any());
+        assertThat(response.coachId()).isEqualTo(1L);
+        assertThat(response.firstName()).isEqualTo("Ion");
     }
 
     @Test
-    void throwsWhenGetStudentsWithNonExistentCoach(){
-        when(coachService.coachExists(1L)).thenReturn(false);
+    void listsOnlyOwnStudentsForCoach() {
+        when(studentRepository.findByCoachId(1L)).thenReturn(List.of());
 
-        assertThatThrownBy(() -> studentService.getStudentsByCoachId(1L))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Coach");
-        
+        studentService.getStudents(COACH);
+
+        verify(studentRepository).findByCoachId(1L);
+        verify(studentRepository, never()).findAll();
+    }
+
+    @Test
+    void listsAllStudentsForAdmin() {
+        AuthenticatedCoach admin = new AuthenticatedCoach(9L, "admin@example.com", Role.ADMIN);
+        when(studentRepository.findAll()).thenReturn(List.of());
+
+        studentService.getStudents(admin);
+
+        verify(studentRepository).findAll();
         verify(studentRepository, never()).findByCoachId(any());
+    }
+
+    @Test
+    void doesNotFindStudentOfAnotherCoach() {
+        when(studentRepository.findByIdAndCoachId(5L, 1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> studentService.getStudentById(5L, COACH))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void adminFindsAnyStudent() {
+        Student student = new Student("Ion", "Popescu", "ion@example.com", 7L);
+        AuthenticatedCoach admin = new AuthenticatedCoach(9L, "admin@example.com", Role.ADMIN);
+        when(studentRepository.findById(5L)).thenReturn(Optional.of(student));
+
+        assertThat(studentService.getStudentById(5L, admin)).isNotNull();
+        verify(studentRepository, never()).findByIdAndCoachId(any(), any());
     }
 }

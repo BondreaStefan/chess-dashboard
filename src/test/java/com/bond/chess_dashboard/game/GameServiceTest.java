@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -17,6 +18,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 
+import com.bond.chess_dashboard.auth.dto.AuthenticatedCoach;
+import com.bond.chess_dashboard.coach.Role;
 import com.bond.chess_dashboard.common.exception.InvalidPgnException;
 import com.bond.chess_dashboard.common.exception.ResourceNotFoundException;
 import com.bond.chess_dashboard.game.dto.CreateGameRequest;
@@ -28,6 +31,8 @@ import com.bond.chess_dashboard.student.dto.StudentResponse;
 
 @ExtendWith(MockitoExtension.class)
 class GameServiceTest {
+
+    private static final AuthenticatedCoach COACH = new AuthenticatedCoach(1L, "coach@example.com", Role.COACH);
 
     private static final String LICHESS_PGN = """
         [Event "rated blitz game"]
@@ -66,10 +71,10 @@ class GameServiceTest {
 
         CreateGameRequest request = new CreateGameRequest(1L, pgn, null);
 
-        when(studentService.getStudentById(1L)).thenReturn(student);
+        when(studentService.getStudentById(1L, COACH)).thenReturn(student);
         when(gameRepository.save(any(Game.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        GameDetailResponse response = gameService.createGame(request);
+        GameDetailResponse response = gameService.createGame(request, COACH);
 
         assertThat(response.studentColor()).isEqualTo(Color.WHITE);
         assertThat(response.studentResult()).isEqualTo(GameResult.WIN);
@@ -83,10 +88,10 @@ class GameServiceTest {
 
         CreateGameRequest request = new CreateGameRequest(1L, LICHESS_PGN, null);
 
-        when(studentService.getStudentById(1L)).thenReturn(student);
+        when(studentService.getStudentById(1L, COACH)).thenReturn(student);
         when(gameRepository.save(any(Game.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        GameDetailResponse response = gameService.createGame(request);
+        GameDetailResponse response = gameService.createGame(request, COACH);
 
         assertThat(response.studentColor()).isEqualTo(Color.BLACK);
         assertThat(response.studentResult()).isEqualTo(GameResult.LOSS);
@@ -100,10 +105,10 @@ class GameServiceTest {
 
         CreateGameRequest request = new CreateGameRequest(1L, LICHESS_PGN, Color.WHITE);
 
-        when(studentService.getStudentById(1L)).thenReturn(student);
+        when(studentService.getStudentById(1L, COACH)).thenReturn(student);
         when(gameRepository.save(any(Game.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        GameDetailResponse response = gameService.createGame(request);
+        GameDetailResponse response = gameService.createGame(request, COACH);
 
         assertThat(response.studentColor()).isEqualTo(Color.WHITE);
         assertThat(response.studentResult()).isEqualTo(GameResult.WIN);
@@ -117,9 +122,9 @@ class GameServiceTest {
 
         CreateGameRequest request = new CreateGameRequest(1L, LICHESS_PGN, null);
 
-        when(studentService.getStudentById(1L)).thenReturn(student);
+        when(studentService.getStudentById(1L, COACH)).thenReturn(student);
 
-        assertThatThrownBy(() -> gameService.createGame(request))
+        assertThatThrownBy(() -> gameService.createGame(request, COACH))
                 .isInstanceOf(InvalidPgnException.class)
                 .hasMessageContaining("Cannot determine student's color");
         
@@ -130,10 +135,10 @@ class GameServiceTest {
     void throwsWhenStudentDoesNotExist() {
         CreateGameRequest request = new CreateGameRequest(1L, "orice", null);
 
-        when(studentService.getStudentById(1L))
+        when(studentService.getStudentById(1L, COACH))
             .thenThrow(new ResourceNotFoundException("Student", 1L));
 
-        assertThatThrownBy(() -> gameService.createGame(request))
+        assertThatThrownBy(() -> gameService.createGame(request, COACH))
             .isInstanceOf(ResourceNotFoundException.class);
 
         verify(gameRepository, never()).save(any());
@@ -141,9 +146,10 @@ class GameServiceTest {
 
     @Test
     void throwsWhenListingGamesForNonExistentStudent() {
-        when(studentService.studentExists(999L)).thenReturn(false);
+        when(studentService.getStudentById(999L, COACH))
+                .thenThrow(new ResourceNotFoundException("Student", 999L));
 
-        assertThatThrownBy(() -> gameService.getGamesByStudentId(999L, Pageable.unpaged()))
+        assertThatThrownBy(() -> gameService.getGamesByStudentId(999L, Pageable.unpaged(), COACH))
             .isInstanceOf(ResourceNotFoundException.class);
 
         verify(gameRepository, never()).findByStudentId(any(), any());
@@ -180,9 +186,9 @@ class GameServiceTest {
 
         ImportGamesRequest request = new ImportGamesRequest(1L, pgn);
 
-        when(studentService.getStudentById(1L)).thenReturn(student);
+        when(studentService.getStudentById(1L, COACH)).thenReturn(student);
 
-        ImportGamesResponse response = gameService.importGames(request);
+        ImportGamesResponse response = gameService.importGames(request, COACH);
 
         assertThat(response.imported()).isEqualTo(2);
         assertThat(response.skipped()).isEqualTo(1);
@@ -195,5 +201,16 @@ class GameServiceTest {
             .containsExactly(Color.WHITE, Color.BLACK);
         assertThat(saved).extracting(Game::getStudentResult)
             .containsExactly(GameResult.WIN, GameResult.LOSS);
+    }
+
+    @Test
+    void doesNotReturnGameOfAnotherCoachStudent() {
+        Game game = new Game(7L, GameSource.MANUAL, "pgn", Color.WHITE, GameResult.WIN);
+        when(gameRepository.findById(5L)).thenReturn(Optional.of(game));
+        when(studentService.getStudentById(7L, COACH))
+                .thenThrow(new ResourceNotFoundException("Student", 7L));
+
+        assertThatThrownBy(() -> gameService.getGameById(5L, COACH))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 }
