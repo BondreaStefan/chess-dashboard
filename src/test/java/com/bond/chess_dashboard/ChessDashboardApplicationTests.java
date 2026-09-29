@@ -7,7 +7,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-@TestPropertySource(properties = "KN4tIfAHm5KV7tFxmqELkr0d48nL6ilHsey386BlYeE=")
+@TestPropertySource(properties = "jwt.secret=KN4tIfAHm5KV7tFxmqELkr0d48nL6ilHsey386BlYeE=")
 public class ChessDashboardApplicationTests {
 
 	@Test
