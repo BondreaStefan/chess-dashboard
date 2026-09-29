@@ -9,5 +9,7 @@ interface CoachRepository extends JpaRepository<Coach, Long> {
     boolean existsByEmail(String email);
 
     Optional<Coach> findByEmail(String email);
+
+    boolean existsByRole(Role role);
     
 }

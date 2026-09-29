@@ -14,7 +14,7 @@ spring:
   datasource:
     url: jdbc:postgresql://127.0.0.1:5433/chess_dashboard
     username: chess
-    password: chess_local_dev
+    password: ${DB_PASSWORD:}
 
   jpa:
     hibernate:
@@ -33,6 +33,9 @@ spring:
   jackson:
     default-property-inclusion: non_null
 
+  config:
+    import: optional:file:.env[.properties]
+
 server:
   port: 8080
 
@@ -41,5 +44,9 @@ logging:
     '[org.flywaydb]': INFO
 
 jwt:
-  secret: ${JWT_SECRET:TnwtIwzvFPd8fOObu0oNC0BeEpi9hf5qRBE4cPpTUnc=}
+  secret: ${JWT_SECRET:}
   expiration-ms: 3600000
+
+admin:
+  email: ${ADMIN_EMAIL:}
+  password: ${ADMIN_PASSWORD:}

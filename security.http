@@ -47,9 +47,9 @@ Authorization: Bearer {{loginA.response.body.token}}
 Content-Type: application/json
 
 {
-  "firstName": "Elev3",
+  "firstName": "Elev4",
   "lastName": "DeA",
-  "email": "elev.a3@example.com"
+  "email": "elev.a4@example.com"
 }
 
 ### 3b. B își creează un elev → 201
@@ -59,9 +59,9 @@ Authorization: Bearer {{loginB.response.body.token}}
 Content-Type: application/json
 
 {
-  "firstName": "Elev3",
+  "firstName": "Elev4",
   "lastName": "DeB",
-  "email": "elev.b3@example.com"
+  "email": "elev.b4@example.com"
 }
 
 ### 4. A cere elevul lui B → 404
@@ -116,3 +116,46 @@ Authorization: Bearer {{loginB.response.body.token}}
 
 ### 12. Fără token → 401
 GET http://localhost:8080/api/v1/students
+
+### Login admin
+# @name loginAdmin
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@localhost",
+  "password": "o-parola-lunga-de-dezvoltare"
+}
+
+### Admin listează antrenorii → 200
+GET http://localhost:8080/api/v1/coaches
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Admin își vede profilul → 200, cu rolul ADMIN în token
+GET http://localhost:8080/api/v1/coaches/me
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### Coach obișnuit listează antrenorii → 403
+GET http://localhost:8080/api/v1/coaches
+Authorization: Bearer {{loginA.response.body.token}}
+
+### Admin reatribuie elevul lui A către B → 200
+PUT http://localhost:8080/api/v1/students/{{studentA.response.body.id}}/coach
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: application/json
+
+{
+  "coachId": {{loginB.response.body.coachId}}
+}
+
+### B listează elevii → include elevul mutat de la A
+GET http://localhost:8080/api/v1/students
+Authorization: Bearer {{loginB.response.body.token}}
+
+### B cere direct elevul mutat → 200
+GET http://localhost:8080/api/v1/students/{{studentA.response.body.id}}
+Authorization: Bearer {{loginB.response.body.token}}
+
+### A cere elevul pe care l-a pierdut → 404
+GET http://localhost:8080/api/v1/students/{{studentA.response.body.id}}
+Authorization: Bearer {{loginA.response.body.token}}
