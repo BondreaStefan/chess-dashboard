@@ -33,6 +33,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   if (response.status === 401) {
     localStorage.removeItem('token');
+    window.dispatchEvent(new Event('auth:unauthorized'));
   }
 
   if (!response.ok) {

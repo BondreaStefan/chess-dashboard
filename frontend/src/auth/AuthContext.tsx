@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { apiFetch } from '../api/client';
 
 export type AuthUser = { id: number; email: string; role: 'ADMIN' | 'COACH' };
@@ -29,6 +29,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(
     () => userFromToken(localStorage.getItem('token')),
   );
+
+  useEffect(() => {
+    const handleUnauthorized = () => setUser(null);
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
 
   async function login(email: string, password: string) {
     const data = await apiFetch<AuthResponse>('/auth/login', {
