@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiFetch, ApiError } from '../api/client';
 
 type AuthResponse = {
     token: string;
@@ -20,22 +21,14 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/v1/auth/login', {
+            const data = await apiFetch<AuthResponse>('/auth/login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
-            const data = await response.json();
-
-            if (!response.ok) { 
-                setError(data.message ?? 'Login failed');
-                return;
-            }
-
             localStorage.setItem('token', data.token);
             setAuth(data);
-        } catch {
-            setError('Cannot reach the server.');
+        } catch (err) {
+            setError(err instanceof ApiError ? err.message : 'Cannot reach the server');
         } finally {
             setLoading(false);
         }
