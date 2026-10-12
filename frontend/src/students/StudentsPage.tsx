@@ -1,13 +1,26 @@
-import { useAuth } from "../auth/AuthContext";
+import { useQuery } from '@tanstack/react-query';
+import { apiFetch } from '../api/client';
+import type { Student } from './types';
 
 export default function StudentsPage() {
-    const { user, logout } = useAuth();
+  const { data: students, isPending, isError, error } = useQuery({
+    queryKey: ['students'],
+    queryFn: () => apiFetch<Student[]>('/students'),
+  });
 
-    return (
-      <div>
-        <h1>Elevii mei</h1>
-        <p>Autentificat ca {user?.email}</p>
-        <button onClick={logout}>Logout</button>
-      </div>
-    );
+  if (isPending) return <p>Se încarcă...</p>;
+  if (isError) return <p style={{ color: 'red' }}>{error.message}</p>;
+
+  return (
+    <div>
+      <h1>Elevii mei</h1>
+      <ul>
+        {students.map((student) => (
+          <li key={student.id}>
+            {student.firstName} {student.lastName} — {student.email}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
