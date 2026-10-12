@@ -9,3 +9,11 @@ export type Student = {
   createdAt: string;
   updatedAt?: string;
 };
+
+export type CreateStudentRequest = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  lichessUsername?: string;
+  chessComUsername?: string;
+};
