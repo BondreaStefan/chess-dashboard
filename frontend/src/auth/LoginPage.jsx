@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ApiError, apiFetch } from '../api/client'
 
 export default function LoginPage() {
 
@@ -14,22 +15,15 @@ export default function LoginPage() {
 
     const requestOptions = {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({email, password})
     };
 
     try {
-      const response = await fetch('/api/v1/auth/login', requestOptions)
-      const data = await response.json()
-      if (!response.ok) {
-        setError(data.detail ?? 'Login failed')
-        return
-      }
-
+      const data = await apiFetch('/auth/login', requestOptions)
       localStorage.setItem('token', data.token)
 
-    } catch {
-      setError('Cannot reach the server')
+    } catch(err) {
+      setError(err instanceof ApiError ? err.message :'Cannot reach the server')
     } finally {
       setLoading(false)
     }
@@ -56,9 +50,7 @@ export default function LoginPage() {
             <button type="submit" disabled={loading}>
               {loading ? 'Logging in..' : 'Login'}
             </button>
-            <p>
-              {error}
-            </p>
+            {error && <p>{error}</p>}
           </form>
         </div>
     )
