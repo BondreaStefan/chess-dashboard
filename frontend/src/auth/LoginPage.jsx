@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ApiError, apiFetch } from '../api/client'
+import { useNavigate } from 'react-router'
 
 export default function LoginPage() {
 
@@ -7,6 +8,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+
+  const navigate = useNavigate()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -21,6 +24,7 @@ export default function LoginPage() {
     try {
       const data = await apiFetch('/auth/login', requestOptions)
       localStorage.setItem('token', data.token)
+      navigate('/dashboard')
 
     } catch(err) {
       setError(err instanceof ApiError ? err.message :'Cannot reach the server')
