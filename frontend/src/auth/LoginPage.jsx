@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-  const { user, login } = useAuth()
+  const { login } = useAuth()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -21,8 +21,8 @@ export default function LoginPage() {
       await login(email, password)
       navigate('/dashboard')
 
-    } catch(err) {
-      setError(err instanceof ApiError ? err.message :'Cannot reach the server')
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Cannot reach the server')
 
     } finally {
       setLoading(false)
@@ -30,28 +30,28 @@ export default function LoginPage() {
   }
 
   return (
-        <div>
-          <h1>Login</h1>
-          <form onSubmit={handleSubmit}>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              required
-              onChange= {(e) => setEmail(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              required
-              onChange= {(e) => setPassword(e.target.value)} 
-            />
-            <button type="submit" disabled={loading}>
-              {loading ? 'Logging in..' : 'Login'}
-            </button>
-            {error && <p>{error}</p>}
-          </form>
-        </div>
-    )
+    <div>
+      <h1>Login</h1>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          required
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          required
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? 'Logging in..' : 'Login'}
+        </button>
+        {error && <p>{error}</p>}
+      </form>
+    </div>
+  )
 }
