@@ -5,6 +5,8 @@ import java.time.OffsetDateTime;
 import com.bond.chess_dashboard.game.Color;
 import com.bond.chess_dashboard.game.GameResult;
 import com.bond.chess_dashboard.game.GameSource;
+import com.bond.chess_dashboard.game.Platform;
+import com.bond.chess_dashboard.game.TimeClass;
 
 public record GameSummaryResponse(
     Long id,
@@ -19,5 +21,7 @@ public record GameSummaryResponse(
     String timeControl,
     Integer whiteElo,
     Integer blackElo,
-    Integer moveCount
+    Integer moveCount,
+    Platform platform,
+    TimeClass timeClass
 ) {}
