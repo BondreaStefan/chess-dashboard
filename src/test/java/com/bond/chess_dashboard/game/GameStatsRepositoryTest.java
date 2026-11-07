@@ -2,6 +2,9 @@ package com.bond.chess_dashboard.game;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.OffsetDateTime;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -13,7 +16,7 @@ import com.bond.chess_dashboard.TestcontainersConfiguration;
 @DataJpaTest
 @Import(TestcontainersConfiguration.class)
 class GameStatsRepositoryTest {
-    
+
     @Autowired
     private GameStatsRepository gameStatsRepository;
 
@@ -29,13 +32,21 @@ class GameStatsRepositoryTest {
 
     private Long insertStudent(String email) {
         return ((Number) entityManager.getEntityManager()
-            .createNativeQuery("""
-                    INSERT INTO student (first_name, last_name, email)
-                    VALUES ('Test', 'Student', :email)
-                    RETURNING id
-                    """)
-            .setParameter("email", email)
-            .getSingleResult()).longValue();
+                .createNativeQuery("""
+                        INSERT INTO student (first_name, last_name, email)
+                        VALUES ('Test', 'Student', :email)
+                        RETURNING id
+                        """)
+                .setParameter("email", email)
+                .getSingleResult()).longValue();
+    }
+
+    private Game gameAt(Long studentId, OffsetDateTime playedAt) {
+        Game game = new Game(studentId, GameSource.MANUAL, "pgn", Color.WHITE, GameResult.WIN);
+        game.applyMetadata(new ParsedGame(
+                "1-0", "White", "Black", 1500, 1500, playedAt,
+                null, "180+0", 20, "pgn", Platform.CHESS_COM, TimeClass.BLITZ));
+        return game;
     }
 
     @Test
@@ -71,5 +82,28 @@ class GameStatsRepositoryTest {
         assertThat(stats.getWins()).isZero();
     }
 
+    @Test
+    void countsRecentGamesPerStudent() {
+        OffsetDateTime now = OffsetDateTime.parse("2026-11-07T12:00:00Z");
+        Long active = insertStudent("a@example.com");
+        Long withoutGames = insertStudent("b@example.com");
+
+        gameRepository.saveAll(List.of(
+                gameAt(active, now.minusDays(2)), // last 7 & 14 days
+                gameAt(active, now.minusDays(10)), // last 14 days
+                gameAt(active, now.minusDays(30)) // outside the window
+        ));
+        gameRepository.flush();
+
+        List<StudentActivityProjection> result = gameStatsRepository.findActivity(
+                List.of(active, withoutGames), now.minusDays(14), now.minusDays(7));
+
+        assertThat(result).hasSize(1);
+        StudentActivityProjection activity = result.getFirst();
+        assertThat(activity.getStudentId()).isEqualTo(active);
+        assertThat(activity.getGamesLast14Days()).isEqualTo(2);
+        assertThat(activity.getGamesLast7Days()).isEqualTo(1);
+        assertThat(activity.getLastPlayedAt()).isEqualTo(now.minusDays(2).toInstant());
+    }
 
 }

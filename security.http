@@ -47,9 +47,11 @@ Authorization: Bearer {{loginA.response.body.token}}
 Content-Type: application/json
 
 {
-  "firstName": "Elev4",
-  "lastName": "DeA",
-  "email": "elev.a4@example.com"
+  "firstName": "Stefan",
+  "lastName": "Bondrea",
+  "email": "stefan.bondrea@example.com",
+  "chessComUsername": "S-Bondrea",
+  "lichessUsername": "VipStef"
 }
 
 ### 3b. B își creează un elev → 201
@@ -159,3 +161,19 @@ Authorization: Bearer {{loginB.response.body.token}}
 ### A cere elevul pe care l-a pierdut → 404
 GET http://localhost:8080/api/v1/students/{{studentA.response.body.id}}
 Authorization: Bearer {{loginA.response.body.token}}
+
+### Import games from file
+POST http://localhost:8080/api/v1/games/import/file
+Authorization: Bearer {{loginA.response.body.token}}
+Content-Type: multipart/form-data; boundary=PgnBoundary
+
+--PgnBoundary
+Content-Disposition: form-data; name="studentId"
+
+2
+--PgnBoundary
+Content-Disposition: form-data; name="file"; filename="games.pgn"
+Content-Type: text/plain
+
+< C:\Users\Bondrea\Desktop\chess_com_games_2026-11-07.pgn
+--PgnBoundary--
