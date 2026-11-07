@@ -12,21 +12,22 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-class PgnParser{
+class PgnParser {
 
     private static final DateTimeFormatter PGN_DATE = DateTimeFormatter.ofPattern("yyyy.MM.dd");
     private static final DateTimeFormatter PGN_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final int MAX_GAMES_PER_IMPORT = 100;
 
-    static ParsedGame parse(String pgn){
+    static ParsedGame parse(String pgn) {
         List<Game> games = load(pgn);
-        if(games.isEmpty()) {
+        if (games.isEmpty()) {
             throw new InvalidPgnException("No game found in PGN");
         }
 
-        if(games.size() > 1) {
+        if (games.size() > 1) {
             throw new InvalidPgnException("PGN contains multiple games; use batch endpoint instead");
         }
         Game game = games.getFirst();
@@ -43,7 +44,7 @@ class PgnParser{
         if (games.size() > MAX_GAMES_PER_IMPORT) {
             throw new InvalidPgnException("PGN contains too many games; maximum is " + MAX_GAMES_PER_IMPORT);
         }
-            
+
         return games.stream().map(PgnParser::extract).toList();
     }
 
@@ -58,14 +59,14 @@ class PgnParser{
 
         String blackName = game.getBlackPlayer().getName();
 
-        Integer whiteElo = game.getWhitePlayer().getElo() > 0 
-                ? game.getWhitePlayer().getElo() 
+        Integer whiteElo = game.getWhitePlayer().getElo() > 0
+                ? game.getWhitePlayer().getElo()
                 : null;
 
         Integer blackElo = game.getBlackPlayer().getElo() > 0
                 ? game.getBlackPlayer().getElo()
                 : null;
-        
+
         OffsetDateTime playedAt = parsePlayedAt(game);
 
         String ecoCode = game.getEco();
@@ -76,7 +77,12 @@ class PgnParser{
 
         String pgn = game.toPgn(true, true);
 
-        return new ParsedGame(result, whiteName, blackName, whiteElo, blackElo, playedAt, ecoCode, timeControl, moveCount, pgn);
+        Platform platform = detectPlatform(game);
+
+        TimeClass timeClass = TimeClass.from(timeControl, platform);
+
+        return new ParsedGame(result, whiteName, blackName, whiteElo, blackElo,
+                playedAt, ecoCode, timeControl, moveCount, pgn, platform, timeClass);
     }
 
     private static OffsetDateTime parsePlayedAt(Game game) {
@@ -105,16 +111,17 @@ class PgnParser{
 
     private static String extractTimeControl(Game game) {
         TimeControl tc = game.getRound().getEvent().getTimeControl();
-        if (tc == null) 
+        if (tc == null)
             return null;
 
         String value = tc.toPGNString();
 
         if ("?".equals(value)) {
-            return null;   // chesslib maps both "-" and "?" to "?"
+            return null; // chesslib maps both "-" and "?" to "?"
         }
 
-        // chesslib doesn't add the increment when it's 0 : "300" when it should be "300+0"
+        // chesslib doesn't add the increment when it's 0 : "300" when it should be
+        // "300+0"
         return value.matches("\\d+") ? value + "+0" : value;
     }
 
@@ -136,5 +143,25 @@ class PgnParser{
             throw new InvalidPgnException("Failed to parse PGN: " + root.getMessage(), e);
         }
         return games;
-    }    
+    }
+
+    private static Platform detectPlatform(Game game) {
+        String site = game.getRound().getEvent().getSite();
+        Map<String, String> props = game.getProperty();
+        String link = props != null ? props.get("Link") : null;
+
+        if (containsIgnoreCase(site, "chess.com") || containsIgnoreCase(link, "chess.com")) {
+            return Platform.CHESS_COM;
+        }
+
+        if (containsIgnoreCase(site, "lichess.org")) {
+            return Platform.LICHESS;
+        }
+
+        return Platform.OTHER;
+    }
+
+    private static boolean containsIgnoreCase(String value, String fragment) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(fragment);
+    }
 }
