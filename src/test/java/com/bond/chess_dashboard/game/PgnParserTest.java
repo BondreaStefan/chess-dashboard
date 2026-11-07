@@ -211,4 +211,36 @@ class PgnParserTest {
                 .isInstanceOf(InvalidPgnException.class)
                 .hasMessageContaining("batch");
     }
+
+    @Test
+    void parsesDailyTimeControl() {
+        String pgn = """
+                [Event "Daily Chess"]
+                [Site "Chess.com"]
+                [Result "1-0"]
+                [TimeControl "1/86400"]
+
+                1. e4 e5 1-0
+                """;
+
+        ParsedGame parsed = PgnParser.parse(pgn);
+
+        assertThat(parsed.timeControl()).isEqualTo("1/86400"); 
+    }
+
+    @Test
+    void parsesUnlimitedTimeControl() {
+        String pgn = """
+                [Event "Casual correspondence game"]
+                [Site "https://lichess.org/abcd1234"]
+                [Result "1-0"]
+                [TimeControl "-"]
+
+                1. e4 e5 1-0
+                """;
+
+        ParsedGame parsed = PgnParser.parse(pgn);
+
+        assertThat(parsed.timeControl()).isNull(); 
+    }
 }

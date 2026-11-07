@@ -109,8 +109,13 @@ class PgnParser{
             return null;
 
         String value = tc.toPGNString();
+
+        if ("?".equals(value)) {
+            return null;   // chesslib maps both "-" and "?" to "?"
+        }
+
         // chesslib doesn't add the increment when it's 0 : "300" when it should be "300+0"
-        return value.contains("+") ? value : value + "+0";
+        return value.matches("\\d+") ? value + "+0" : value;
     }
 
     private static int moveCount(Game game) {
