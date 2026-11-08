@@ -57,4 +57,22 @@ interface GameStatsRepository extends JpaRepository<Game, Long> {
       @Param("studentIds") List<Long> studentIds,
       @Param("since14") OffsetDateTime since14);
 
+  @Query(value = """
+      SELECT
+        played_at AS "playedAt",
+        CASE WHEN student_color = 'WHITE' THEN white_elo ELSE black_elo END AS "rating"
+      FROM game
+      WHERE student_id = :studentId
+        AND platform = :platform
+        AND time_class = :timeClass
+        AND played_at >= :since
+        AND CASE WHEN student_color = 'WHITE' THEN white_elo ELSE black_elo END IS NOT NULL
+      ORDER BY played_at
+      """, nativeQuery = true)
+  List<RatingPointProjection> findRatingHistory(
+      @Param("studentId") Long studentId,
+      @Param("platform") String platform,
+      @Param("timeClass") String timeClass,
+      @Param("since") OffsetDateTime since);
+
 }

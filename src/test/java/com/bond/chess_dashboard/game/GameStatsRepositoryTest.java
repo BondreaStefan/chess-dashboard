@@ -49,6 +49,16 @@ class GameStatsRepositoryTest {
         return game;
     }
 
+    private Game ratedGameAt(Long studentId, OffsetDateTime playedAt, Color color,
+            Integer whiteElo, Integer blackElo,
+            Platform platform, TimeClass timeClass) {
+        Game game = new Game(studentId, GameSource.MANUAL, "pgn", color, GameResult.WIN);
+        game.applyMetadata(new ParsedGame(
+                "1-0", "White", "Black", whiteElo, blackElo, playedAt,
+                null, "180+0", 20, "pgn", platform, timeClass));
+        return game;
+    }
+
     @Test
     void countsResultsByColor() {
         Long student = insertStudent("a@example.com");
@@ -153,5 +163,31 @@ class GameStatsRepositoryTest {
                     assertThat(c.getRecentGames()).isZero();
                     assertThat(c.getLastPlayedAt()).isEqualTo(now.minusDays(60).toInstant());
                 });
+    }
+
+    @Test
+    void returnsStudentRatingHistoryForCombination() {
+        OffsetDateTime now = OffsetDateTime.parse("2026-11-07T12:00:00Z");
+        Long student = insertStudent("e@example.com");
+
+        gameRepository.saveAll(List.of(
+                // incluse
+                ratedGameAt(student, now.minusDays(10), Color.WHITE, 1400, 1500, Platform.CHESS_COM, TimeClass.BLITZ),
+                ratedGameAt(student, now.minusDays(5), Color.BLACK, 1450, 1420, Platform.CHESS_COM, TimeClass.BLITZ),
+                // excluse
+                ratedGameAt(student, now.minusDays(3), Color.WHITE, null, 1500, Platform.CHESS_COM, TimeClass.BLITZ),
+                ratedGameAt(student, now.minusDays(2), Color.WHITE, 1600, 1500, Platform.CHESS_COM, TimeClass.RAPID),
+                ratedGameAt(student, now.minusDays(1), Color.WHITE, 1700, 1500, Platform.LICHESS, TimeClass.BLITZ),
+                ratedGameAt(student, now.minusDays(120), Color.WHITE, 1300, 1300, Platform.CHESS_COM,
+                        TimeClass.BLITZ)));
+        gameRepository.flush();
+
+        List<RatingPointProjection> history = gameStatsRepository.findRatingHistory(
+                student, Platform.CHESS_COM.name(), TimeClass.BLITZ.name(), now.minusDays(90));
+
+        assertThat(history).extracting(RatingPointProjection::getRating)
+                .containsExactly(1400, 1420);
+        assertThat(history).extracting(RatingPointProjection::getPlayedAt)
+                .containsExactly(now.minusDays(10).toInstant(), now.minusDays(5).toInstant());
     }
 }
