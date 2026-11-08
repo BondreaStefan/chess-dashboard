@@ -39,4 +39,22 @@ interface GameStatsRepository extends JpaRepository<Game, Long> {
       @Param("studentIds") List<Long> studentIds,
       @Param("since14") OffsetDateTime since14,
       @Param("since7") OffsetDateTime since7);
+
+  @Query(value = """
+      SELECT
+        student_id                                    AS "studentId",
+        platform                                      AS "platform",
+        time_class                                    AS "timeClass",
+        COUNT(*) FILTER (WHERE played_at >= :since14) AS "recentGames",
+        MAX(played_at)                                AS "lastPlayedAt"
+      FROM game
+      WHERE student_id IN (:studentIds)
+        AND platform <> 'OTHER'
+        AND time_class <> 'UNKNOWN'
+      GROUP BY student_id, platform, time_class
+      """, nativeQuery = true)
+  List<StudentCombinationProjection> findCombinations(
+      @Param("studentIds") List<Long> studentIds,
+      @Param("since14") OffsetDateTime since14);
+
 }
