@@ -67,9 +67,8 @@ class GameControllerTest {
         GameDetailResponse response = new GameDetailResponse(1L, 1L, GameSource.MANUAL,
              null, Color.WHITE, GameResult.WIN, OffsetDateTime.parse("2026-08-30T16:37:47Z"),
               "Rookin-Good", "1-0", "B21", "900+10",
-               1430, 1400, 27,
-                "[Result \\\"1-0\\\"]",
-                 null, null);
+               1430, 1400, 27, "[Result \\\"1-0\\\"]",
+               Platform.CHESS_COM, TimeClass.RAPID, null, null);
 
         when(gameService.createGame(any(CreateGameRequest.class), eq(COACH))).thenReturn(response);
 
@@ -142,7 +141,7 @@ class GameControllerTest {
             Color.WHITE, GameResult.WIN,
             OffsetDateTime.parse("2026-08-30T16:37:47Z"),
             "Rookin-Good", "1-0", "B21", "900+10",
-            1430, 1400, 27);
+            1430, 1400, 27, Platform.CHESS_COM, TimeClass.RAPID);
 
         Page<GameSummaryResponse> page =
             new PageImpl<>(List.of(summary), PageRequest.of(0, 10), 1);
@@ -156,7 +155,9 @@ class GameControllerTest {
                 .andExpect(jsonPath("$.content[0].opponentName").value("Rookin-Good"))
                 .andExpect(jsonPath("$.content[0].studentResult").value("WIN"))
                 .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$.page.number").value(0));
+                .andExpect(jsonPath("$.page.number").value(0))
+                .andExpect(jsonPath("$.content[0].platform").value("CHESS_COM"))
+                .andExpect(jsonPath("$.content[0].timeClass").value("RAPID"));
     }
 
     @Test

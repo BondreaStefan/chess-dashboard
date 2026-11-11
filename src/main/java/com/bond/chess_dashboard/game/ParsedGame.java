@@ -12,5 +12,7 @@ public record ParsedGame(
     String ecoCode,
     String timeControl,
     int moveCount,
-    String pgn
+    String pgn,
+    Platform platform,
+    TimeClass timeClass
 ) {}

@@ -57,13 +57,14 @@ class PgnParserTest {
             [Termination "Time forfeit"]
             [Annotator "lichess.org"]
 
-            1. e4 e5 2. Nf3 Nc6 3. Bb5 Bc5 4. c3 { C64 Ruy Lopez: Classical Variation, Central Variation } 
-            Qf6 5. O-O Nge7 6. Re1 O-O 7. d4 d6 8. dxc5 Bg4 9. Bg5 Qg6 10. Bxe7 Nxe7 11. cxd6 cxd6 
-            12. Nbd2 a6 13. Be2 f5 14. h3 Bxh3 15. exf5 Nxf5 16. g3 Ne3 17. Nh4 Qg5 18. Ndf3 Rxf3 
-            19. Nxf3 Qg6 20. Qb3+ Kh8 21. Qxb7 Rf8 22. Nh4 Qg5 23. Qh1 Rxf2 24. Kxf2 Nf5 25. Qxh3 Qe3+ 
+            1. e4 e5 2. Nf3 Nc6 3. Bb5 Bc5 4. c3 { C64 Ruy Lopez: Classical Variation, Central Variation }
+            Qf6 5. O-O Nge7 6. Re1 O-O 7. d4 d6 8. dxc5 Bg4 9. Bg5 Qg6 10. Bxe7 Nxe7 11. cxd6 cxd6
+            12. Nbd2 a6 13. Be2 f5 14. h3 Bxh3 15. exf5 Nxf5 16. g3 Ne3 17. Nh4 Qg5 18. Ndf3 Rxf3
+            19. Nxf3 Qg6 20. Qb3+ Kh8 21. Qxb7 Rf8 22. Nh4 Qg5 23. Qh1 Rxf2 24. Kxf2 Nf5 25. Qxh3 Qe3+
             26. Kg2 { White wins on time. } 1-0
 
             """;
+
     @Test
     void parsesChessComMetadata() {
         ParsedGame parsed = PgnParser.parse(SAMPLE_CHESS_COM_PGN);
@@ -77,6 +78,8 @@ class PgnParserTest {
         assertThat(parsed.ecoCode()).isEqualTo("B21");
         assertThat(parsed.timeControl()).isEqualTo("900+10");
         assertThat(parsed.moveCount()).isEqualTo(27);
+        assertThat(parsed.platform()).isEqualTo(Platform.CHESS_COM);
+        assertThat(parsed.timeClass()).isEqualTo(TimeClass.RAPID);
     }
 
     @Test
@@ -92,6 +95,8 @@ class PgnParserTest {
         assertThat(parsed.ecoCode()).isEqualTo("C64");
         assertThat(parsed.timeControl()).isEqualTo("300+0");
         assertThat(parsed.moveCount()).isEqualTo(26);
+        assertThat(parsed.platform()).isEqualTo(Platform.LICHESS);
+        assertThat(parsed.timeClass()).isEqualTo(TimeClass.BLITZ);
     }
 
     @Test
@@ -105,8 +110,10 @@ class PgnParserTest {
         ParsedGame parsed = PgnParser.parse(minimal);
 
         assertThat(parsed.whiteName()).isNull();
-        assertThat(parsed.whiteElo()).isNull(); 
+        assertThat(parsed.whiteElo()).isNull();
         assertThat(parsed.playedAt()).isNull();
+        assertThat(parsed.platform()).isEqualTo(Platform.OTHER);
+        assertThat(parsed.timeClass()).isEqualTo(TimeClass.UNKNOWN);
     }
 
     @Test
@@ -139,37 +146,37 @@ class PgnParserTest {
                 1. e4 e5 2. Qh9 1-0
                 """;
 
-        assertThatThrownBy(() -> PgnParser.parse(pgn) )
-            .isInstanceOf(InvalidPgnException.class);
+        assertThatThrownBy(() -> PgnParser.parse(pgn))
+                .isInstanceOf(InvalidPgnException.class);
     }
 
     @Test
     void parsesMultipleGames() {
         String pgn = """
-            [Event "Game one"]
-            [Date "2026.01.10"]
-            [White "PlayerA"]
-            [Black "PlayerB"]
-            [Result "1-0"]
+                [Event "Game one"]
+                [Date "2026.01.10"]
+                [White "PlayerA"]
+                [Black "PlayerB"]
+                [Result "1-0"]
 
-            1. e4 e5 2. Nf3 Nc6 1-0
+                1. e4 e5 2. Nf3 Nc6 1-0
 
-            [Event "Game two"]
-            [Date "2026.01.11"]
-            [White "PlayerC"]
-            [Black "PlayerD"]
-            [Result "0-1"]
+                [Event "Game two"]
+                [Date "2026.01.11"]
+                [White "PlayerC"]
+                [Black "PlayerD"]
+                [Result "0-1"]
 
-            1. d4 d5 0-1
+                1. d4 d5 0-1
 
-            [Event "Game three"]
-            [Date "2026.01.12"]
-            [White "PlayerE"]
-            [Black "PlayerF"]
-            [Result "1/2-1/2"]
+                [Event "Game three"]
+                [Date "2026.01.12"]
+                [White "PlayerE"]
+                [Black "PlayerF"]
+                [Result "1/2-1/2"]
 
-            1. c4 c5 2. Nc3 1/2-1/2
-            """;
+                1. c4 c5 2. Nc3 1/2-1/2
+                """;
 
         List<ParsedGame> games = PgnParser.parseAll(pgn);
 
@@ -183,32 +190,112 @@ class PgnParserTest {
     @Test
     void rejectsMultipleGamesOnSingleParse() {
         String pgn = """
-            [Event "Game one"]
-            [Date "2026.01.10"]
-            [White "PlayerA"]
-            [Black "PlayerB"]
-            [Result "1-0"]
+                [Event "Game one"]
+                [Date "2026.01.10"]
+                [White "PlayerA"]
+                [Black "PlayerB"]
+                [Result "1-0"]
 
-            1. e4 e5 2. Nf3 Nc6 1-0
+                1. e4 e5 2. Nf3 Nc6 1-0
 
-            [Event "Game two"]
-            [Date "2026.01.11"]
-            [White "PlayerC"]
-            [Black "PlayerD"]
-            [Result "0-1"]
+                [Event "Game two"]
+                [Date "2026.01.11"]
+                [White "PlayerC"]
+                [Black "PlayerD"]
+                [Result "0-1"]
 
-            1. d4 d5 0-1
+                1. d4 d5 0-1
 
-            [Event "Game three"]
-            [Date "2026.01.12"]
-            [White "PlayerE"]
-            [Black "PlayerF"]
-            [Result "1/2-1/2"]
+                [Event "Game three"]
+                [Date "2026.01.12"]
+                [White "PlayerE"]
+                [Black "PlayerF"]
+                [Result "1/2-1/2"]
 
-            1. c4 c5 2. Nc3 1/2-1/2
-            """;
+                1. c4 c5 2. Nc3 1/2-1/2
+                """;
         assertThatThrownBy(() -> PgnParser.parse(pgn))
                 .isInstanceOf(InvalidPgnException.class)
                 .hasMessageContaining("batch");
+    }
+
+    @Test
+    void parsesDailyTimeControl() {
+        String pgn = """
+                [Event "Daily Chess"]
+                [Site "Chess.com"]
+                [Result "1-0"]
+                [TimeControl "1/86400"]
+
+                1. e4 e5 1-0
+                """;
+
+        ParsedGame parsed = PgnParser.parse(pgn);
+
+        assertThat(parsed.timeControl()).isEqualTo("1/86400");
+    }
+
+    @Test
+    void parsesUnlimitedTimeControl() {
+        String pgn = """
+                [Event "Casual correspondence game"]
+                [Site "https://lichess.org/abcd1234"]
+                [Result "1-0"]
+                [TimeControl "-"]
+
+                1. e4 e5 1-0
+                """;
+
+        ParsedGame parsed = PgnParser.parse(pgn);
+
+        assertThat(parsed.timeControl()).isNull();
+    }
+
+    @Test
+    void detectsLichessFromSiteWithoutExtraTags() {
+        String pgn = """
+                [Event "Rated blitz game"]
+                [Site "https://lichess.org/abcd1234"]
+                [Result "1-0"]
+                [TimeControl "180+2"]
+
+                1. e4 e5 1-0
+                """;
+
+        ParsedGame parsed = PgnParser.parse(pgn);
+
+        assertThat(parsed.platform()).isEqualTo(Platform.LICHESS);
+        assertThat(parsed.timeClass()).isEqualTo(TimeClass.BLITZ); // 180 + 80 = 260s
+    }
+
+    @Test
+    void detectsChessComFromSiteWithoutLink() {
+        String pgn = """
+                [Event "Live Chess"]
+                [Site "Chess.com"]
+                [Result "0-1"]
+                [TimeControl "300+5"]
+
+                1. d4 d5 0-1
+                """;
+
+        ParsedGame parsed = PgnParser.parse(pgn);
+
+        assertThat(parsed.platform()).isEqualTo(Platform.CHESS_COM);
+        assertThat(parsed.timeClass()).isEqualTo(TimeClass.BLITZ); // 500s, blitz on Chess.com
+    }
+
+    @Test
+    void classifiesSameTimeControlByPlatformRules() {
+        String lichess = """
+                [Event "Rated game"]
+                [Site "https://lichess.org/abcd1234"]
+                [Result "1-0"]
+                [TimeControl "300+5"]
+
+                1. e4 e5 1-0
+                """;
+
+        assertThat(PgnParser.parse(lichess).timeClass()).isEqualTo(TimeClass.RAPID); // 500s, rapid on Lichess
     }
 }

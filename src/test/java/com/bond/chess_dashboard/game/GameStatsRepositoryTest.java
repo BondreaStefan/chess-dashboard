@@ -2,6 +2,9 @@ package com.bond.chess_dashboard.game;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.OffsetDateTime;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -13,7 +16,7 @@ import com.bond.chess_dashboard.TestcontainersConfiguration;
 @DataJpaTest
 @Import(TestcontainersConfiguration.class)
 class GameStatsRepositoryTest {
-    
+
     @Autowired
     private GameStatsRepository gameStatsRepository;
 
@@ -29,13 +32,31 @@ class GameStatsRepositoryTest {
 
     private Long insertStudent(String email) {
         return ((Number) entityManager.getEntityManager()
-            .createNativeQuery("""
-                    INSERT INTO student (first_name, last_name, email)
-                    VALUES ('Test', 'Student', :email)
-                    RETURNING id
-                    """)
-            .setParameter("email", email)
-            .getSingleResult()).longValue();
+                .createNativeQuery("""
+                        INSERT INTO student (first_name, last_name, email)
+                        VALUES ('Test', 'Student', :email)
+                        RETURNING id
+                        """)
+                .setParameter("email", email)
+                .getSingleResult()).longValue();
+    }
+
+    private Game gameAt(Long studentId, OffsetDateTime playedAt, Platform platform, TimeClass timeClass) {
+        Game game = new Game(studentId, GameSource.MANUAL, "pgn", Color.WHITE, GameResult.WIN);
+        game.applyMetadata(new ParsedGame(
+                "1-0", "White", "Black", 1500, 1500, playedAt,
+                null, "180+0", 20, "pgn", platform, timeClass));
+        return game;
+    }
+
+    private Game ratedGameAt(Long studentId, OffsetDateTime playedAt, Color color,
+            Integer whiteElo, Integer blackElo,
+            Platform platform, TimeClass timeClass) {
+        Game game = new Game(studentId, GameSource.MANUAL, "pgn", color, GameResult.WIN);
+        game.applyMetadata(new ParsedGame(
+                "1-0", "White", "Black", whiteElo, blackElo, playedAt,
+                null, "180+0", 20, "pgn", platform, timeClass));
+        return game;
     }
 
     @Test
@@ -71,5 +92,102 @@ class GameStatsRepositoryTest {
         assertThat(stats.getWins()).isZero();
     }
 
+    @Test
+    void countsRecentGamesPerStudent() {
+        OffsetDateTime now = OffsetDateTime.parse("2026-11-07T12:00:00Z");
+        Long active = insertStudent("a@example.com");
+        Long withoutGames = insertStudent("b@example.com");
 
+        gameRepository.saveAll(List.of(
+                gameAt(active, now.minusDays(2), Platform.CHESS_COM, TimeClass.BLITZ), // last 7 & 14 days
+                gameAt(active, now.minusDays(10), Platform.CHESS_COM, TimeClass.BLITZ), // last 14 days
+                gameAt(active, now.minusDays(30), Platform.CHESS_COM, TimeClass.BLITZ) // outside the window
+        ));
+        gameRepository.flush();
+
+        List<StudentActivityProjection> result = gameStatsRepository.findActivity(
+                List.of(active, withoutGames), now.minusDays(14), now.minusDays(7));
+
+        assertThat(result).hasSize(1);
+        StudentActivityProjection activity = result.getFirst();
+        assertThat(activity.getStudentId()).isEqualTo(active);
+        assertThat(activity.getGamesLast14Days()).isEqualTo(2);
+        assertThat(activity.getGamesLast7Days()).isEqualTo(1);
+        assertThat(activity.getLastPlayedAt()).isEqualTo(now.minusDays(2).toInstant());
+    }
+
+    @Test
+    void groupsGamesByPlatformAndTimeClass() {
+        OffsetDateTime now = OffsetDateTime.parse("2026-11-07T12:00:00Z");
+        Long student = insertStudent("c@example.com");
+        Long otherStudent = insertStudent("d@example.com");
+
+        gameRepository.saveAll(List.of(
+                gameAt(student, now.minusDays(2), Platform.CHESS_COM, TimeClass.BLITZ),
+                gameAt(student, now.minusDays(4), Platform.CHESS_COM, TimeClass.BLITZ),
+                gameAt(student, now.minusDays(5), Platform.CHESS_COM, TimeClass.BLITZ),
+                gameAt(student, now.minusDays(3), Platform.CHESS_COM, TimeClass.RAPID),
+                gameAt(student, now.minusDays(60), Platform.LICHESS, TimeClass.BULLET),
+                gameAt(student, now.minusDays(1), Platform.OTHER, TimeClass.UNKNOWN),
+                gameAt(otherStudent, now.minusDays(1), Platform.LICHESS, TimeClass.BLITZ)));
+        gameRepository.flush();
+
+        List<StudentCombinationProjection> result = gameStatsRepository.findCombinations(List.of(student),
+                now.minusDays(14));
+
+        assertThat(result).hasSize(3);
+
+        assertThat(result)
+                .filteredOn(c -> c.getTimeClass() == TimeClass.BLITZ)
+                .singleElement()
+                .satisfies(c -> {
+                    assertThat(c.getStudentId()).isEqualTo(student);
+                    assertThat(c.getPlatform()).isEqualTo(Platform.CHESS_COM);
+                    assertThat(c.getRecentGames()).isEqualTo(3);
+                    assertThat(c.getLastPlayedAt()).isEqualTo(now.minusDays(2).toInstant());
+                });
+
+        assertThat(result)
+                .filteredOn(c -> c.getTimeClass() == TimeClass.RAPID)
+                .singleElement()
+                .satisfies(c -> {
+                    assertThat(c.getPlatform()).isEqualTo(Platform.CHESS_COM);
+                    assertThat(c.getRecentGames()).isEqualTo(1);
+                });
+
+        assertThat(result)
+                .filteredOn(c -> c.getTimeClass() == TimeClass.BULLET)
+                .singleElement()
+                .satisfies(c -> {
+                    assertThat(c.getPlatform()).isEqualTo(Platform.LICHESS);
+                    assertThat(c.getRecentGames()).isZero();
+                    assertThat(c.getLastPlayedAt()).isEqualTo(now.minusDays(60).toInstant());
+                });
+    }
+
+    @Test
+    void returnsStudentRatingHistoryForCombination() {
+        OffsetDateTime now = OffsetDateTime.parse("2026-11-07T12:00:00Z");
+        Long student = insertStudent("e@example.com");
+
+        gameRepository.saveAll(List.of(
+                // incluse
+                ratedGameAt(student, now.minusDays(10), Color.WHITE, 1400, 1500, Platform.CHESS_COM, TimeClass.BLITZ),
+                ratedGameAt(student, now.minusDays(5), Color.BLACK, 1450, 1420, Platform.CHESS_COM, TimeClass.BLITZ),
+                // excluse
+                ratedGameAt(student, now.minusDays(3), Color.WHITE, null, 1500, Platform.CHESS_COM, TimeClass.BLITZ),
+                ratedGameAt(student, now.minusDays(2), Color.WHITE, 1600, 1500, Platform.CHESS_COM, TimeClass.RAPID),
+                ratedGameAt(student, now.minusDays(1), Color.WHITE, 1700, 1500, Platform.LICHESS, TimeClass.BLITZ),
+                ratedGameAt(student, now.minusDays(120), Color.WHITE, 1300, 1300, Platform.CHESS_COM,
+                        TimeClass.BLITZ)));
+        gameRepository.flush();
+
+        List<RatingPointProjection> history = gameStatsRepository.findRatingHistory(
+                student, Platform.CHESS_COM.name(), TimeClass.BLITZ.name(), now.minusDays(90));
+
+        assertThat(history).extracting(RatingPointProjection::getRating)
+                .containsExactly(1400, 1420);
+        assertThat(history).extracting(RatingPointProjection::getPlayedAt)
+                .containsExactly(now.minusDays(10).toInstant(), now.minusDays(5).toInstant());
+    }
 }

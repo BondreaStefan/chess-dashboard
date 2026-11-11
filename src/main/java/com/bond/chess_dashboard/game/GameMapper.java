@@ -23,7 +23,9 @@ class GameMapper {
             game.getTimeControl(),
             game.getWhiteElo(),
             game.getBlackElo(),
-            game.getMoveCount()
+            game.getMoveCount(),
+            game.getPlatform(),
+            game.getTimeClass()
         );
     }
 
@@ -44,6 +46,8 @@ class GameMapper {
             game.getBlackElo(),
             game.getMoveCount(),
             game.getPgn(),
+            game.getPlatform(),
+            game.getTimeClass(),
             game.getCreatedAt(),
             game.getUpdatedAt()
         );

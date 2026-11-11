@@ -19,12 +19,12 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "game")
 class Game {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
-    
+
     @Column(name = "student_id", nullable = false)
     private Long studentId;
 
@@ -77,8 +77,16 @@ class Game {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "platform", nullable = false, length = 20)
+    private Platform platform = Platform.OTHER;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "time_class", nullable = false, length = 20)
+    private TimeClass timeClass = TimeClass.UNKNOWN;
+
     protected Game() {
-        
+
     }
 
     public Game(Long studentId, GameSource source, String pgn, Color studentColor, GameResult studentResult) {
@@ -157,17 +165,27 @@ class Game {
         return updatedAt;
     }
 
+    public Platform getPlatform() {
+        return platform;
+    }
+
+    public TimeClass getTimeClass() {
+        return timeClass;
+    }
+
     void applyMetadata(ParsedGame parsedGame) {
         this.playedAt = parsedGame.playedAt();
-        this.opponentName = studentColor == Color.WHITE 
-                    ? parsedGame.blackName() 
-                    : parsedGame.whiteName();
+        this.opponentName = studentColor == Color.WHITE
+                ? parsedGame.blackName()
+                : parsedGame.whiteName();
         this.result = parsedGame.result();
         this.ecoCode = parsedGame.ecoCode();
         this.timeControl = parsedGame.timeControl();
         this.whiteElo = parsedGame.whiteElo();
         this.blackElo = parsedGame.blackElo();
         this.moveCount = parsedGame.moveCount();
+        this.platform = parsedGame.platform();
+        this.timeClass = parsedGame.timeClass();
     }
 
     @PreUpdate
@@ -199,9 +217,9 @@ class Game {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) 
+        if (this == o)
             return true;
-        if (!(o instanceof Game)) 
+        if (!(o instanceof Game))
             return false;
 
         Game game = (Game) o;
@@ -213,4 +231,4 @@ class Game {
     public int hashCode() {
         return getClass().hashCode();
     }
-}   
+}
