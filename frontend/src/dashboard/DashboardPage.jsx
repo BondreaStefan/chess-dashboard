@@ -1,5 +1,5 @@
 import { apiFetch } from "../api/client"
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import SummaryCards from './SummaryCards.jsx'
 import StudentTable from './StudentTable.jsx'
 
