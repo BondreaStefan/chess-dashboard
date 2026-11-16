@@ -1,0 +1,51 @@
+.student-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.student-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.student-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #111827;
+}
+
+.student-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.student-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge--inactive    { background: #f3f4f6; color: #6b7280; }
+.badge--low         { background: #fef3c7; color: #92400e; }
+.badge--active      { background: #dcfce7; color: #166534; }
+.badge--very_active { background: #bbf7d0; color: #14532d; }
+
+.trend--up     { color: #15803d; font-weight: 600; }
+.trend--down   { color: #b91c1c; font-weight: 600; }
+.trend--stable { color: #374151; }

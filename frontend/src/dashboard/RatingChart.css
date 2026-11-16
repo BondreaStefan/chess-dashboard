@@ -1,0 +1,21 @@
+.rating-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rating-chart__caption,
+.rating-chart__empty {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.rating-chart__tooltip {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 6px;
+  font-size: 12px;
+}
