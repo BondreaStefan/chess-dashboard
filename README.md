@@ -44,7 +44,7 @@ Coaches upload games as PGN — single games, multi-game exports from Lichess or
 | Auth | JWT (jjwt), BCrypt |
 | Chess | [chesslib](https://github.com/bhlangonijr/chesslib) for PGN parsing |
 | Testing | JUnit 5, Mockito, AssertJ, MockMvc, Testcontainers |
-| Frontend | React, TypeScript, Vite, TanStack Query, React Router |
+| Frontend | React, JavaScript, Vite, TanStack Query, React Router |
 | Tooling | Maven, Docker Compose, GitHub Actions |
 
 ---
