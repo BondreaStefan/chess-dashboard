@@ -6,7 +6,7 @@ export default function StudentInfoTable({ students }) {
   }
 
   return(
-    <table className="student-table">
+    <table className="data-table">
       <thead>
         <tr>
           <th>Name</th>

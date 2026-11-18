@@ -4,6 +4,8 @@ import { useState } from 'react'
 import StudentInfoTable from './StudentInfoTable'
 import AddStudentForm from './AddStudentForm'
 
+import './StudentsPage.css'
+
 export default function StudentsPage() {
 
   const { data, isPending, isError, error } = useQuery({
@@ -23,7 +25,9 @@ export default function StudentsPage() {
       <div className="students-page__header">
         <h1>Students</h1>
         {!isAdding && (
-          <button onClick={() => setIsAdding(true)}>Add a new student</button>
+          <button className="button button--primary" onClick={() => setIsAdding(true)}>
+            Add a new student
+          </button>
         )}
       </div>
       

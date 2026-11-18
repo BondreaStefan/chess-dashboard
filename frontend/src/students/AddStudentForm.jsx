@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch, ApiError } from "../api/client"
 import { useState } from 'react'
 
+import './AddStudentForm.css'
+
 const emptyForm = {
   firstName: '',
   lastName: '',
@@ -46,30 +48,30 @@ export default function AddStudentForm({ onClose }) {
   const fieldErrors = apiError?.problem.errors;
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Adaugă elev</h2>
+    <form className="add-student-form" onSubmit={handleSubmit}>
+      <h2>Add student</h2>
 
-      <label>
-        Prenume
+      <label className="add-student-form__field">
+        First name
         <input
           required
           value={form.firstName}
           onChange={(e) => update('firstName', e.target.value)}
         />
+        {fieldErrors?.firstName && <span>{fieldErrors.firstName}</span>}
       </label>
-      {fieldErrors?.firstName && <span>{fieldErrors.firstName}</span>}
-
-      <label>
-        Nume
+      
+      <label className="add-student-form__field">
+        Last name
         <input
           required
           value={form.lastName}
           onChange={(e) => update('lastName', e.target.value)}
         />
+        {fieldErrors?.lastName && <span>{fieldErrors.lastName}</span>}
       </label>
-      {fieldErrors?.lastName && <span>{fieldErrors.lastName}</span>}
-
-      <label>
+      
+      <label className="add-student-form__field add-student-form__field--wide">
         Email
         <input
           type="email"
@@ -77,41 +79,41 @@ export default function AddStudentForm({ onClose }) {
           value={form.email}
           onChange={(e) => update('email', e.target.value)}
         />
+        {fieldErrors?.email && <span>{fieldErrors.email}</span>}
       </label>
-      {fieldErrors?.email && <span>{fieldErrors.email}</span>}
 
-      <label>
-        Lichess (opțional)
+      <label className="add-student-form__field">
+        Lichess username (optional)
         <input
           value={form.lichessUsername}
           onChange={(e) => update('lichessUsername', e.target.value)}
         />
+        {fieldErrors?.lichessUsername && (
+          <span>{fieldErrors.lichessUsername}</span>
+        )}
       </label>
-      {fieldErrors?.lichessUsername && (
-        <span>{fieldErrors.lichessUsername}</span>
-      )}
-
-      <label>
-        Chess.com (opțional)
+      
+      <label className="add-student-form__field">
+        Chess.com username (optional)
         <input
           value={form.chessComUsername}
           onChange={(e) => update('chessComUsername', e.target.value)}
         />
+        {fieldErrors?.chessComUsername && (
+          <span>{fieldErrors.chessComUsername}</span>
+        )}
       </label>
-      {fieldErrors?.chessComUsername && (
-        <span>{fieldErrors.chessComUsername}</span>
-      )}
 
       <div className="add-student-form__actions">
-        <button type="button" disabled={mutation.isPending} onClick={onClose}>
+        <button type="button" className="button button--secondary" disabled={mutation.isPending} onClick={onClose}>
           Cancel
         </button>
-        <button type="submit" disabled={mutation.isPending}>
+        <button type="submit" className="button button--primary" disabled={mutation.isPending}>
           {mutation.isPending ? 'Saving...' : 'Add Student'}
         </button>
       </div>
 
-      {apiError && !fieldErrors && <p>{apiError.message}</p>}
+      {apiError && !fieldErrors && <p className="add-student-form__message">{apiError.message}</p>}
     </form>
   );
 }
