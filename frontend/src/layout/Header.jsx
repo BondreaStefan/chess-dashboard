@@ -11,7 +11,7 @@ export function Header() {
 
       <nav className="app-header__nav">
         <NavLink to="/dashboard">Dashboard</NavLink>
-        <NavLink to="/students">Elevi</NavLink>
+        <NavLink to="/students">Students</NavLink>
       </nav>
 
       <div className="app-header__user">
