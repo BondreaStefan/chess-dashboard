@@ -1,6 +1,8 @@
 import { apiFetch } from "../api/client"
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import StudentInfoTable from './StudentInfoTable'
+import AddStudentForm from './AddStudentForm'
 
 export default function StudentsPage() {
 
@@ -9,14 +11,24 @@ export default function StudentsPage() {
     queryFn: () => apiFetch('/students'),
   })
 
-  if (isPending) 
+  const [isAdding, setIsAdding] = useState(false)
+
+  if (isPending)
     return <div>Loading...</div>
-  if (isError) 
+  if (isError)
     return <div>Error: {error.message}</div>
 
   return (
     <div>
-      <h1>Students</h1>
+      <div className="students-page__header">
+        <h1>Students</h1>
+        {!isAdding && (
+          <button onClick={() => setIsAdding(true)}>Add a new student</button>
+        )}
+      </div>
+      
+      {isAdding && <AddStudentForm onClose={() => setIsAdding(false)} />}
+
       <StudentInfoTable students={data} />
     </div>
   )
