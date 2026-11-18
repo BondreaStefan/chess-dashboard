@@ -8,7 +8,7 @@ export default function StudentTable({ students }) {
   }
 
   return (
-    <table className="student-table">
+    <table className="data-table">
       <thead>
         <tr>
           <th>Name</th>

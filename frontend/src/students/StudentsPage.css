@@ -1,0 +1,10 @@
+.students-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.students-page__header h1 {
+  margin: 0;
+}

@@ -2,6 +2,7 @@ import './App.css'
 import LoginPage from './auth/LoginPage'
 import { Navigate, Routes, Route } from 'react-router'
 import DashboardPage from './dashboard/DashboardPage'
+import StudentsPage from './students/StudentsPage'
 import RequireAuth from './auth/RequireAuth'
 import Layout from './layout/Layout'
 
@@ -17,6 +18,7 @@ export default function App() {
         }
       >
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/students" element={<StudentsPage />} />
       </Route>
       <Route path='*' element={<Navigate to="/login" replace />}/>
     </Routes>
