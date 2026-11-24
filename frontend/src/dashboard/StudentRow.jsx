@@ -1,3 +1,5 @@
+import { Link } from 'react-router'
+
 import RatingChart from './RatingChart.jsx'
 
 export default function StudentRow({ student }) {
@@ -19,7 +21,11 @@ export default function StudentRow({ student }) {
 
   return (
     <tr>
-      <td>{firstName} {lastName}</td>
+      <td>
+        <Link to={`/students/${student.id}`}>
+          {firstName} {lastName}
+        </Link>
+      </td>
       <td>{gamesLast14Days}</td>
       <td>
         <span className={`badge badge--${activityLevel.toLowerCase()}`}>
