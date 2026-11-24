@@ -1,3 +1,4 @@
+import { Link } from "react-router"
 
 export default function StudentInfoTable({ students }) {
 
@@ -5,7 +6,7 @@ export default function StudentInfoTable({ students }) {
     return <p>No students yet. Add your first student below.</p>
   }
 
-  return(
+  return (
     <table className="data-table">
       <thead>
         <tr>
@@ -18,7 +19,11 @@ export default function StudentInfoTable({ students }) {
       <tbody>
         {students.map((student) => (
           <tr key={student.id}>
-            <td>{student.firstName} {student.lastName}</td>
+            <td>
+              <Link to={`/students/${student.id}`}>
+                {student.firstName} {student.lastName}
+              </Link>
+            </td>
             <td>{student.email}</td>
             <td>{student.lichessUsername ?? '-'}</td>
             <td>{student.chessComUsername ?? '-'}</td>

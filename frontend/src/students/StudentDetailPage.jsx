@@ -34,6 +34,7 @@ export default function StudentDetailPage() {
 
   return (
     <div>
+      <Link to="/students">← All students</Link>
       <ProfileHeader student={data} />
       <StudentStats studentId={studentId} />
       <ImportGames studentId={studentId} />
