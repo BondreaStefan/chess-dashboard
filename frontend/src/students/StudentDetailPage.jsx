@@ -1,10 +1,12 @@
-import { useParams } from "react-router"
+import { useParams} from "react-router"
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { apiFetch, ApiError } from "../api/client"
 import { Link } from "react-router"
 import StudentStats from "./StudentStats"
 import ProfileHeader from "./ProfileHeader"
 import GamesList from "./GamesList"
+import ImportGames from "./ImportGames"
 
 export default function StudentDetailPage() {
 
@@ -32,8 +34,9 @@ export default function StudentDetailPage() {
 
   return (
     <div>
-      <ProfileHeader student={data}/>
-      <StudentStats studentId={studentId}/>
+      <ProfileHeader student={data} />
+      <StudentStats studentId={studentId} />
+      <ImportGames studentId={studentId} />
       <GamesList studentId={studentId} />
     </div>
   )
